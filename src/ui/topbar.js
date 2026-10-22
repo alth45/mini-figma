@@ -132,4 +132,5 @@ function assignEmptyDoc() {
   state.elements = [];
   state.selection = [];
   syncHeaderControls();
+  applyDevice();
 }

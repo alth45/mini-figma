@@ -27,7 +27,7 @@ window.addEventListener('keydown', (e) => {
   /* ---- kombinasi dengan modifier ---- */
   if (mod) {
     const k = e.key.toLowerCase();
-    if (k === 'z' && !e.shiftKey) { e.preventDefault(); bus.emit(EVENTS.HISTORY_PUSH); undo(); }
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
     else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
     else if (k === 'd') { e.preventDefault(); duplicateSelected(); }
     else if (k === 's') { e.preventDefault(); saveToLocalStorage(false); }

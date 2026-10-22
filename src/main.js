@@ -15,7 +15,7 @@ import {
   initViewport, applyDevice, updateStatus, syncHeaderControls,
   setZoom, fitZoom
 } from './rendering/viewport.js';
-import { renderCanvas } from './rendering/canvasRenderer.js';
+import { renderCanvas, initCanvasRenderer } from './rendering/canvasRenderer.js';
 import { renderLayers, initLayersPanel } from './rendering/layersPanel.js';
 import { updateSelectionBox, initSelectionOverlay } from './rendering/selectionOverlay.js';
 
@@ -98,6 +98,7 @@ function boot() {
   initToast();
   initModal();
   initViewport();
+  initCanvasRenderer(); // registrasi listener 'element:sync'
   initCanvasInteraction();  // binding dilakukan saat module dimuat
   initKeyboard();
   initTopbar();

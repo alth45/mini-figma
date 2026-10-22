@@ -60,6 +60,4 @@ export function redo() {
 export function initHistory() {
   bus.on(EVENTS.HISTORY_PUSH, pushHistory);
   bus.on(EVENTS.HISTORY_SCHEDULE, scheduleHistory);
-  $('btnUndo').addEventListener('click', undo);
-  $('btnRedo').addEventListener('click', redo);
 }

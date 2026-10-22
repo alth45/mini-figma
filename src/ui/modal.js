@@ -4,7 +4,7 @@
 
 import { $ } from '../utils/dom.js';
 
-const modalBackdrop = $('modalBackdrop');
+let modalBackdrop = null;
 
 export function openModal(title, bodyHTML, footHTML) {
   $('modalTitle').textContent = title;
@@ -18,6 +18,7 @@ export function closeModal() {
 }
 
 export function initModal() {
+  modalBackdrop = $('modalBackdrop');
   $('modalClose').addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', (e) => {
     if (e.target === modalBackdrop) closeModal();
