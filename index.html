@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wireframe Studio — Mini Figma</title>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ================= TOP BAR ================= -->
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span>Wireframe Studio</div>
+    <input id="docName" value="Untitled Design" spellcheck="false" title="Document name" />
+
+    <div class="sep"></div>
+    <button class="btn" id="btnNew" title="New document">New</button>
+    <button class="btn" id="btnDup" title="Duplicate selection (Ctrl+D)">Duplicate</button>
+
+    <div class="menu-wrap">
+      <button class="btn primary" id="btnExport">Export ▾</button>
+      <div class="menu" id="exportMenu">
+        <button data-export="html">Export HTML + CSS</button>
+        <button data-export="png">Export PNG</button>
+        <button data-export="json">Export JSON</button>
+        <button data-export="import">Import JSON…</button>
+        <button data-export="print">Print / Save as PDF</button>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+    <button class="btn" id="btnSave" title="Save to LocalStorage">Save</button>
+    <button class="btn" id="btnLoad" title="Load from LocalStorage">Load</button>
+
+    <div class="sep"></div>
+    <button class="btn icon" id="btnUndo" title="Undo (Ctrl+Z)">↶</button>
+    <button class="btn icon" id="btnRedo" title="Redo (Ctrl+Y)">↷</button>
+
+    <div class="spacer"></div>
+
+    <button class="btn icon active" id="btnGrid" title="Toggle grid (G)">▦</button>
+    <div class="zoom-group">
+      <button class="btn" id="btnZoomOut" title="Zoom out">−</button>
+      <span id="zoomLabel">100%</span>
+      <button class="btn" id="btnZoomIn" title="Zoom in">+</button>
+      <button class="btn" id="btnZoomFit" title="Fit to screen">Fit</button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+
+    <!-- ---------- LEFT : COMPONENT LIBRARY ---------- -->
+    <aside class="panel left">
+      <div class="panel-head">Components</div>
+      <div class="search-wrap">
+        <input id="compSearch" placeholder="Search components…" spellcheck="false" />
+      </div>
+      <div class="panel-scroll" id="library"></div>
+    </aside>
+
+    <!-- ---------- CENTER : CANVAS ---------- -->
+    <div class="canvas-wrap">
+      <div class="canvas-head">
+        <span style="color:#8b8b8b">Device</span>
+        <select id="deviceSelect">
+          <option value="iphone">iPhone — 390 × 844</option>
+          <option value="android">Android — 360 × 800</option>
+          <option value="tablet">Tablet — 768 × 1024</option>
+          <option value="desktop">Desktop — 1440 × 900</option>
+          <option value="custom">Custom…</option>
+        </select>
+        <span id="customSizeWrap" style="display:none;gap:4px;align-items:center">
+          <input class="fld" id="customW" type="number" style="width:66px;background:#262626;border:1px solid #333;border-radius:5px;padding:4px 6px;outline:none" value="1000" />
+          <span style="color:#666">×</span>
+          <input class="fld" id="customH" type="number" style="width:66px;background:#262626;border:1px solid #333;border-radius:5px;padding:4px 6px;outline:none" value="700" />
+        </span>
+        <label><input type="checkbox" id="chromeToggle" checked /> Chrome</label>
+        <div class="spacer"></div>
+        <span style="color:#666;font-size:11px">Drag components onto the canvas</span>
+      </div>
+
+      <div class="canvas-scroll" id="canvasScroll">
+        <div class="canvas-pad">
+          <div class="frame-holder" id="frameHolder">
+            <div class="frame-wrapper" id="frameWrapper">
+              <div class="device-frame chrome" id="deviceFrame">
+                <div class="grid-overlay" id="gridOverlay"></div>
+                <div class="notch" id="notch"></div>
+                <div id="frameContent"></div>
+                <div id="overlay"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- RIGHT : INSPECTOR / LAYERS ---------- -->
+    <aside class="panel right">
+      <div class="tabs-head">
+        <button class="tab-btn active" data-tab="design">Design</button>
+        <button class="tab-btn" data-tab="layers">Layers</button>
+      </div>
+
+      <!-- DESIGN TAB -->
+      <div class="tab-body" id="tab-design">
+        <div class="empty" id="inspectorEmpty">
+          Nothing selected.<br />Click an element on the canvas,<br />or drag a component from the library.
+        </div>
+
+        <div id="inspector" style="display:none">
+
+          <!-- Position & Size -->
+          <div class="section">
+            <div class="section-title">Position &amp; Size</div>
+            <div class="grid2">
+              <label class="fld"><span>X</span><input type="number" id="prop-x" /></label>
+              <label class="fld"><span>Y</span><input type="number" id="prop-y" /></label>
+              <label class="fld"><span>W</span><input type="number" id="prop-w" min="8" /></label>
+              <label class="fld"><span>H</span><input type="number" id="prop-h" min="8" /></label>
+            </div>
+            <label class="fld wide"><span>↻</span>
+              <select id="prop-rotate" class="sel" style="background:transparent;border:none;padding:0;height:auto">
+                <option value="0">Rotation 0°</option>
+                <option value="90">Rotation 90°</option>
+                <option value="180">Rotation 180°</option>
+                <option value="270">Rotation 270°</option>
+              </select>
+            </label>
+          </div>
+
+          <!-- Style -->
+          <div class="section">
+            <div class="section-title">Style</div>
+
+            <div class="inline-label"><span>Fill</span></div>
+            <div class="row">
+              <input type="color" class="swatch" id="prop-fill" value="#ffffff" />
+              <label class="fld" style="flex:1"><input type="text" id="prop-fill-hex" placeholder="none / #ffffff" /></label>
+              <button class="btn tiny" id="prop-fill-none" title="No fill">∅</button>
+            </div>
+
+            <div class="inline-label" style="margin-top:8px"><span>Border</span></div>
+            <div class="row">
+              <input type="color" class="swatch" id="prop-borderColor" value="#d1d5db" />
+              <label class="fld" style="flex:1"><span>W</span><input type="number" id="prop-borderWidth" min="0" /></label>
+              <label class="fld" style="flex:1"><span>R</span><input type="number" id="prop-radius" min="0" /></label>
+            </div>
+
+            <div class="inline-label" style="margin-top:8px"><span>Shadow</span></div>
+            <select class="sel" id="prop-shadow">
+              <option value="none">None</option>
+              <option value="sm">Small</option>
+              <option value="md">Medium</option>
+              <option value="lg">Large</option>
+            </select>
+
+            <div class="inline-label" style="margin-top:8px"><span>Opacity</span><span id="opacityVal">100%</span></div>
+            <input type="range" id="prop-opacity" min="0" max="100" value="100" />
+          </div>
+
+          <!-- Typography -->
+          <div class="section">
+            <div class="section-title">Typography</div>
+            <select class="sel" id="prop-fontFamily" style="margin-bottom:6px">
+              <option value="Inter, system-ui, sans-serif">Inter / System</option>
+              <option value="Georgia, 'Times New Roman', serif">Georgia (Serif)</option>
+              <option value="ui-monospace, Menlo, Consolas, monospace">Monospace</option>
+              <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
+              <option value="Verdana, sans-serif">Verdana</option>
+            </select>
+            <div class="grid2">
+              <label class="fld"><span>Aa</span><input type="number" id="prop-fontSize" min="6" /></label>
+              <label class="fld"><span>W</span>
+                <select id="prop-fontWeight" style="background:transparent;border:none;outline:none;width:100%;padding:0">
+                  <option value="300">Light</option>
+                  <option value="400">Regular</option>
+                  <option value="500">Medium</option>
+                  <option value="600">Semibold</option>
+                  <option value="700">Bold</option>
+                  <option value="800">Black</option>
+                </select>
+              </label>
+            </div>
+            <div class="row">
+              <input type="color" class="swatch" id="prop-color" value="#111827" />
+              <label class="fld" style="flex:1"><input type="text" id="prop-color-hex" /></label>
+              <label class="fld" style="flex:1"><span>LH</span><input type="number" id="prop-lineHeight" step="0.1" min="0.8" /></label>
+            </div>
+            <div class="btn-group" style="margin-top:6px">
+              <button class="btn" data-align="left">Left</button>
+              <button class="btn" data-align="center">Center</button>
+              <button class="btn" data-align="right">Right</button>
+            </div>
+          </div>
+
+          <!-- Content (contextual) -->
+          <div class="section" id="contentSection">
+            <div class="section-title">Content</div>
+            <div id="contentFields"></div>
+          </div>
+
+          <!-- Layer -->
+          <div class="section">
+            <div class="section-title">Layer</div>
+            <label class="fld wide"><span>Name</span><input type="text" id="prop-name" /></label>
+            <div class="btn-group" style="margin-bottom:6px">
+              <button class="btn" id="btnLayerUp" title="Bring forward">↑ Up</button>
+              <button class="btn" id="btnLayerDown" title="Send backward">↓ Down</button>
+            </div>
+            <div class="btn-group">
+              <button class="btn" id="btnLayerHide">Hide</button>
+              <button class="btn" id="btnLayerLock">Lock</button>
+              <button class="btn danger" id="btnLayerDelete">Delete</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- LAYERS TAB -->
+      <div class="tab-body" id="tab-layers" style="display:none">
+        <div id="layerTree"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ================= STATUS BAR ================= -->
+  <footer class="statusbar">
+    <span>X: <b id="statX">—</b> &nbsp; Y: <b id="statY">—</b></span>
+    <span>Device: <b id="statDevice">—</b></span>
+    <span>Zoom: <b id="statZoom">100%</b></span>
+    <span>Elements: <b id="statCount">0</b></span>
+    <span class="hint" id="statHint">V — select · H — hand · Space+drag — pan</span>
+  </footer>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-head"><span id="modalTitle">Export</span><button class="x" id="modalClose">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+<input type="file" id="fileInput" accept="application/json,.json" style="display:none" />
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
