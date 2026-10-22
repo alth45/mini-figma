@@ -1,0 +1,2710 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wireframe Studio — Mini Figma</title>
+<style>
+/* ============================================================
+   TEMA EDITOR (dark, mirip Figma / VS Code)
+   ============================================================ */
+:root{
+  --bg:#161616;
+  --panel:#1f1f1f;
+  --panel-2:#262626;
+  --panel-3:#2d2d2d;
+  --border:#333333;
+  --text:#e6e6e6;
+  --muted:#8b8b8b;
+  --accent:#3b82f6;
+  --accent-soft:rgba(59,130,246,.16);
+  --hover:#2e2e2e;
+  --orange:#f59e0b;
+  --danger:#ef4444;
+  --r:6px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);overflow:hidden;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:12.5px;-webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:6px;border:2px solid var(--panel)}
+::-webkit-scrollbar-thumb:hover{background:#4a4a4a}
+
+/* ---------- APP SHELL ---------- */
+#app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.main{flex:1;display:flex;min-height:0}
+
+/* ---------- BUTTONS ---------- */
+.btn{
+  background:var(--panel-2);border:1px solid var(--border);border-radius:var(--r);
+  padding:6px 10px;cursor:pointer;color:var(--text);white-space:nowrap;
+  transition:background .12s,border-color .12s,color .12s;line-height:1.2;
+}
+.btn:hover{background:var(--panel-3);border-color:#3f3f3f}
+.btn:active{transform:translateY(1px)}
+.btn.icon{padding:6px 8px;min-width:30px;text-align:center}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.btn.primary:hover{background:#2f74e0}
+.btn.active{background:var(--accent-soft);border-color:var(--accent);color:#8ec0ff}
+.btn.danger:hover{background:rgba(239,68,68,.18);border-color:var(--danger);color:#ff9d9d}
+.btn.tiny{padding:3px 6px;font-size:11px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ---------- TOP BAR ---------- */
+.topbar{
+  flex:0 0 48px;height:48px;display:flex;align-items:center;gap:6px;
+  padding:0 10px;background:var(--panel);border-bottom:1px solid var(--border);z-index:60;
+}
+.brand{display:flex;align-items:center;gap:7px;font-weight:700;letter-spacing:.2px;padding-right:4px}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+#docName{
+  background:transparent;border:1px solid transparent;border-radius:var(--r);
+  padding:5px 8px;width:150px;outline:none;font-weight:600;color:var(--text);
+}
+#docName:hover{background:var(--panel-2)}
+#docName:focus{background:var(--panel-2);border-color:var(--accent)}
+.sep{width:1px;height:22px;background:var(--border);margin:0 4px;flex:0 0 auto}
+.spacer{flex:1}
+.zoom-group{display:flex;align-items:center;gap:3px;background:var(--panel-2);border:1px solid var(--border);border-radius:var(--r);padding:2px 4px}
+.zoom-group #zoomLabel{min-width:44px;text-align:center;font-variant-numeric:tabular-nums;color:var(--muted)}
+.zoom-group .btn{background:transparent;border:none;padding:4px 7px}
+.zoom-group .btn:hover{background:var(--panel-3)}
+
+/* dropdown menu */
+.menu-wrap{position:relative}
+.menu{
+  position:absolute;top:calc(100% + 6px);left:0;min-width:180px;background:var(--panel-2);
+  border:1px solid var(--border);border-radius:8px;padding:5px;display:none;
+  box-shadow:0 16px 40px rgba(0,0,0,.5);z-index:80;
+}
+.menu.open{display:block}
+.menu button{
+  display:block;width:100%;text-align:left;background:transparent;border:none;
+  padding:8px 10px;border-radius:5px;cursor:pointer;color:var(--text);
+}
+.menu button:hover{background:var(--accent-soft);color:#a9cfff}
+
+/* ---------- PANELS ---------- */
+.panel{background:var(--panel);display:flex;flex-direction:column;min-height:0}
+.panel.left{flex:0 0 236px;width:236px;border-right:1px solid var(--border)}
+.panel.right{flex:0 0 282px;width:282px;border-left:1px solid var(--border)}
+.panel-head{
+  padding:9px 12px;font-size:11px;letter-spacing:.9px;text-transform:uppercase;
+  color:var(--muted);font-weight:700;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex:0 0 auto;
+}
+.panel-scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
+
+/* search */
+.search-wrap{padding:8px 10px;border-bottom:1px solid var(--border);flex:0 0 auto}
+#compSearch{
+  width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:var(--r);
+  padding:6px 9px;outline:none;
+}
+#compSearch:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+
+/* library */
+.cat{border-bottom:1px solid #2b2b2b}
+.cat-head{
+  display:flex;align-items:center;gap:7px;padding:8px 12px;cursor:pointer;
+  font-weight:700;font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:#b9b9b9;
+  user-select:none;
+}
+.cat-head:hover{background:var(--panel-2)}
+.cat-head .chev{color:var(--muted);font-size:9px;transition:transform .15s;width:9px}
+.cat.closed .chev{transform:rotate(-90deg)}
+.cat.closed .cat-body{display:none}
+.cat-body{padding:4px 8px 8px}
+.comp-item{
+  display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:5px;cursor:grab;
+  color:#d6d6d6;border:1px solid transparent;user-select:none;
+}
+.comp-item:hover{background:var(--panel-2);border-color:#3a3a3a;color:#fff}
+.comp-item:active{cursor:grabbing}
+.comp-item .ci{width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+  background:#2e2e2e;border-radius:4px;font-size:11px;color:#9ab6e0;flex:0 0 auto}
+.lib-ghost{
+  position:fixed;pointer-events:none;z-index:9999;background:var(--accent);color:#fff;
+  padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;
+  transform:translate(-50%,-50%);opacity:.92;box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+
+/* ---------- CANVAS ---------- */
+.canvas-wrap{flex:1;display:flex;flex-direction:column;min-width:0;background:#232323}
+.canvas-head{
+  flex:0 0 34px;height:34px;display:flex;align-items:center;gap:8px;padding:0 10px;
+  background:#1c1c1c;border-bottom:1px solid var(--border);
+}
+.canvas-head select{
+  background:var(--panel-2);border:1px solid var(--border);border-radius:5px;padding:4px 7px;outline:none;
+}
+.canvas-head select:focus{border-color:var(--accent)}
+.canvas-head label{display:flex;align-items:center;gap:5px;color:var(--muted);cursor:pointer;user-select:none}
+
+.canvas-scroll{
+  flex:1;position:relative;overflow:auto;min-height:0;
+  background-color:#2a2a2a;
+  background-image:radial-gradient(circle,#383838 1px,transparent 1px);
+  background-size:16px 16px;
+  cursor:default;
+}
+.canvas-scroll.tool-hand{cursor:grab}
+.canvas-scroll.panning{cursor:grabbing}
+.canvas-pad{
+  min-width:100%;min-height:100%;display:flex;align-items:center;justify-content:center;
+  padding:56px;box-sizing:border-box;
+}
+.frame-holder{position:relative;flex:0 0 auto}
+.frame-wrapper{position:absolute;top:0;left:0;transform-origin:top left}
+
+/* device frame */
+.device-frame{
+  position:relative;background:#ffffff;overflow:hidden;
+  transition:box-shadow .2s;
+}
+.device-frame.chrome{
+  border-radius:26px;
+  box-shadow:0 0 0 9px #101010, 0 24px 70px rgba(0,0,0,.65);
+}
+.device-frame .notch{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:120px;height:22px;background:#101010;border-radius:0 0 14px 14px;
+  z-index:6;pointer-events:none;display:none;
+}
+.device-frame .grid-overlay{
+  position:absolute;inset:0;pointer-events:none;z-index:2;
+  background-image:
+    linear-gradient(to right, rgba(59,130,246,.075) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59,130,246,.075) 1px, transparent 1px);
+  background-size:8px 8px;
+}
+#frameContent{position:absolute;inset:0;overflow:hidden}
+
+/* element di canvas */
+.wf-el{position:absolute}
+.wf-el .wf-content{position:absolute;inset:0}
+
+/* selection overlay */
+#overlay{position:absolute;inset:0;pointer-events:none;z-index:50}
+.sel-box{position:absolute;outline:1px solid var(--accent);outline-offset:0;pointer-events:none}
+.sel-box.secondary{outline-color:rgba(59,130,246,.5)}
+.handle{
+  position:absolute;width:var(--hs,8px);height:var(--hs,8px);background:#fff;
+  border:1.5px solid var(--accent);border-radius:2px;pointer-events:auto;
+  transform:translate(-50%,-50%);z-index:5;box-shadow:0 1px 2px rgba(0,0,0,.25);
+}
+.handle.nw{left:0;top:0;cursor:nwse-resize}
+.handle.n{left:50%;top:0;cursor:ns-resize}
+.handle.ne{left:100%;top:0;cursor:nesw-resize}
+.handle.e{left:100%;top:50%;cursor:ew-resize}
+.handle.se{left:100%;top:100%;cursor:nwse-resize}
+.handle.s{left:50%;top:100%;cursor:ns-resize}
+.handle.sw{left:0;top:100%;cursor:nesw-resize}
+.handle.w{left:0;top:50%;cursor:ew-resize}
+.marquee{position:absolute;border:1px solid var(--accent);background:var(--accent-soft);pointer-events:none}
+
+/* ---------- STATUS BAR ---------- */
+.statusbar{
+  flex:0 0 26px;height:26px;display:flex;align-items:center;gap:16px;padding:0 12px;
+  background:var(--panel);border-top:1px solid var(--border);font-size:11px;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.statusbar b{color:#cfcfcf;font-weight:600}
+.statusbar .hint{color:#6f8dbd}
+
+/* ---------- INSPECTOR ---------- */
+.tabs-head{display:flex;flex:0 0 auto;border-bottom:1px solid var(--border)}
+.tab-btn{
+  flex:1;background:transparent;border:none;padding:10px 0;cursor:pointer;color:var(--muted);
+  font-weight:600;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;
+  border-bottom:2px solid transparent;
+}
+.tab-btn:hover{color:#ccc;background:var(--panel-2)}
+.tab-btn.active{color:#fff;border-bottom-color:var(--accent)}
+.tab-body{flex:1;overflow-y:auto;min-height:0}
+.empty{padding:26px 18px;text-align:center;color:#666;line-height:1.6;font-size:12px}
+
+.section{border-bottom:1px solid #2b2b2b;padding:10px 12px 12px}
+.section-title{
+  font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;color:#9a9a9a;
+  font-weight:700;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;
+}
+.row{display:flex;gap:6px;margin-bottom:6px}
+.row:last-child{margin-bottom:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.fld{
+  display:flex;align-items:center;gap:5px;background:var(--panel-2);border:1px solid var(--border);
+  border-radius:5px;padding:0 7px;height:28px;min-width:0;
+}
+.fld:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.fld > span{color:#7d7d7d;font-size:10.5px;flex:0 0 auto;min-width:12px;font-weight:600}
+.fld input[type=number],.fld input[type=text]{
+  width:100%;min-width:0;background:transparent;border:none;outline:none;padding:0;
+  font-variant-numeric:tabular-nums;color:var(--text);
+}
+.fld input[type=number]::-webkit-outer-spin-button,
+.fld input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.fld input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.fld.wide{width:100%;margin-bottom:6px}
+.full{width:100%}
+select.sel{
+  width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:5px;
+  padding:6px 7px;outline:none;height:28px;
+}
+select.sel:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.swatch{
+  width:20px;height:20px;padding:0;border:1px solid #444;border-radius:4px;background:none;
+  cursor:pointer;flex:0 0 auto;overflow:hidden;
+}
+.swatch::-webkit-color-swatch-wrapper{padding:0}
+.swatch::-webkit-color-swatch{border:none;border-radius:3px}
+.swatch::-moz-color-swatch{border:none;border-radius:3px}
+.btn-group{display:flex;gap:3px}
+.btn-group .btn{flex:1;padding:5px 0;text-align:center}
+input[type=range]{width:100%;accent-color:var(--accent);height:20px}
+.inline-label{display:flex;align-items:center;justify-content:space-between;color:#9a9a9a;font-size:11px;margin-bottom:4px}
+textarea.ta{
+  width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:5px;
+  padding:6px 7px;outline:none;resize:vertical;min-height:52px;line-height:1.4;
+}
+textarea.ta:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.chk{display:flex;align-items:center;gap:7px;padding:5px 0;cursor:pointer;user-select:none;color:#c8c8c8}
+.chk input{accent-color:var(--accent);cursor:pointer}
+
+/* layer panel */
+#layerTree{padding:6px}
+.layer-row{
+  display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;cursor:pointer;
+  user-select:none;color:#cfcfcf;position:relative;
+}
+.layer-row:hover{background:var(--panel-2)}
+.layer-row.sel{background:var(--accent-soft);color:#cfe3ff;box-shadow:inset 0 0 0 1px rgba(59,130,246,.4)}
+.layer-row .ltype{
+  width:18px;height:18px;display:flex;align-items:center;justify-content:center;
+  background:#2e2e2e;border-radius:4px;font-size:10px;color:#8fb2e0;flex:0 0 auto;
+}
+.layer-row .lname{
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;
+}
+.layer-row .lname input{
+  background:var(--panel-3);border:1px solid var(--accent);border-radius:3px;
+  padding:1px 4px;width:100%;outline:none;
+}
+.layer-row .lbtn{
+  background:transparent;border:none;color:#777;cursor:pointer;padding:2px 3px;border-radius:3px;
+  font-size:11px;line-height:1;opacity:.75;
+}
+.layer-row .lbtn:hover{background:#3a3a3a;color:#fff;opacity:1}
+.layer-row.hidden-el{opacity:.42}
+.layer-row.locked-el .lname{font-style:italic}
+
+/* ---------- MODAL ---------- */
+#modalBackdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;
+  justify-content:center;z-index:500;backdrop-filter:blur(2px);
+}
+#modalBackdrop.open{display:flex}
+.modal{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  width:min(760px,92vw);max-height:84vh;display:flex;flex-direction:column;
+  box-shadow:0 30px 90px rgba(0,0,0,.7);
+}
+.modal-head{
+  padding:14px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:14px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-head .x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;border-radius:4px}
+.modal-head .x:hover{background:var(--panel-3);color:#fff}
+.modal-body{padding:16px 18px;overflow:auto;flex:1;min-height:0}
+.modal-body textarea{
+  width:100%;height:340px;background:#141414;border:1px solid var(--border);border-radius:8px;
+  padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:11.5px;line-height:1.55;color:#c9d6e5;resize:vertical;outline:none;
+}
+.modal-body textarea:focus{border-color:var(--accent)}
+.modal-foot{
+  padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;
+}
+.modal-note{color:var(--muted);font-size:11.5px;margin:0 0 10px;line-height:1.5}
+
+/* ---------- TOAST ---------- */
+#toastWrap{position:fixed;bottom:44px;left:50%;transform:translateX(-50%);z-index:900;
+  display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{
+  background:#101010;border:1px solid #3a3a3a;color:#e9e9e9;padding:9px 16px;border-radius:8px;
+  font-size:12.5px;box-shadow:0 12px 34px rgba(0,0,0,.6);animation:toastIn .18s ease-out;
+  display:flex;align-items:center;gap:8px;
+}
+.toast .tdot{width:7px;height:7px;border-radius:50%;background:#22c55e}
+.toast.err .tdot{background:var(--danger)}
+.toast.info .tdot{background:var(--accent)}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ================= TOP BAR ================= -->
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span>Wireframe Studio</div>
+    <input id="docName" value="Untitled Design" spellcheck="false" title="Document name" />
+
+    <div class="sep"></div>
+    <button class="btn" id="btnNew" title="New document">New</button>
+    <button class="btn" id="btnDup" title="Duplicate selection (Ctrl+D)">Duplicate</button>
+
+    <div class="menu-wrap">
+      <button class="btn primary" id="btnExport">Export ▾</button>
+      <div class="menu" id="exportMenu">
+        <button data-export="html">Export HTML + CSS</button>
+        <button data-export="png">Export PNG</button>
+        <button data-export="json">Export JSON</button>
+        <button data-export="import">Import JSON…</button>
+        <button data-export="print">Print / Save as PDF</button>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+    <button class="btn" id="btnSave" title="Save to LocalStorage">Save</button>
+    <button class="btn" id="btnLoad" title="Load from LocalStorage">Load</button>
+
+    <div class="sep"></div>
+    <button class="btn icon" id="btnUndo" title="Undo (Ctrl+Z)">↶</button>
+    <button class="btn icon" id="btnRedo" title="Redo (Ctrl+Y)">↷</button>
+
+    <div class="spacer"></div>
+
+    <button class="btn icon active" id="btnGrid" title="Toggle grid (G)">▦</button>
+    <div class="zoom-group">
+      <button class="btn" id="btnZoomOut" title="Zoom out">−</button>
+      <span id="zoomLabel">100%</span>
+      <button class="btn" id="btnZoomIn" title="Zoom in">+</button>
+      <button class="btn" id="btnZoomFit" title="Fit to screen">Fit</button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+
+    <!-- ---------- LEFT : COMPONENT LIBRARY ---------- -->
+    <aside class="panel left">
+      <div class="panel-head">Components</div>
+      <div class="search-wrap">
+        <input id="compSearch" placeholder="Search components…" spellcheck="false" />
+      </div>
+      <div class="panel-scroll" id="library"></div>
+    </aside>
+
+    <!-- ---------- CENTER : CANVAS ---------- -->
+    <div class="canvas-wrap">
+      <div class="canvas-head">
+        <span style="color:#8b8b8b">Device</span>
+        <select id="deviceSelect">
+          <option value="iphone">iPhone — 390 × 844</option>
+          <option value="android">Android — 360 × 800</option>
+          <option value="tablet">Tablet — 768 × 1024</option>
+          <option value="desktop">Desktop — 1440 × 900</option>
+          <option value="custom">Custom…</option>
+        </select>
+        <span id="customSizeWrap" style="display:none;gap:4px;align-items:center">
+          <input class="fld" id="customW" type="number" style="width:66px;background:#262626;border:1px solid #333;border-radius:5px;padding:4px 6px;outline:none" value="1000" />
+          <span style="color:#666">×</span>
+          <input class="fld" id="customH" type="number" style="width:66px;background:#262626;border:1px solid #333;border-radius:5px;padding:4px 6px;outline:none" value="700" />
+        </span>
+        <label><input type="checkbox" id="chromeToggle" checked /> Chrome</label>
+        <div class="spacer"></div>
+        <span style="color:#666;font-size:11px">Drag components onto the canvas</span>
+      </div>
+
+      <div class="canvas-scroll" id="canvasScroll">
+        <div class="canvas-pad">
+          <div class="frame-holder" id="frameHolder">
+            <div class="frame-wrapper" id="frameWrapper">
+              <div class="device-frame chrome" id="deviceFrame">
+                <div class="grid-overlay" id="gridOverlay"></div>
+                <div class="notch" id="notch"></div>
+                <div id="frameContent"></div>
+                <div id="overlay"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- RIGHT : INSPECTOR / LAYERS ---------- -->
+    <aside class="panel right">
+      <div class="tabs-head">
+        <button class="tab-btn active" data-tab="design">Design</button>
+        <button class="tab-btn" data-tab="layers">Layers</button>
+      </div>
+
+      <!-- DESIGN TAB -->
+      <div class="tab-body" id="tab-design">
+        <div class="empty" id="inspectorEmpty">
+          Nothing selected.<br />Click an element on the canvas,<br />or drag a component from the library.
+        </div>
+
+        <div id="inspector" style="display:none">
+
+          <!-- Position & Size -->
+          <div class="section">
+            <div class="section-title">Position &amp; Size</div>
+            <div class="grid2">
+              <label class="fld"><span>X</span><input type="number" id="prop-x" /></label>
+              <label class="fld"><span>Y</span><input type="number" id="prop-y" /></label>
+              <label class="fld"><span>W</span><input type="number" id="prop-w" min="8" /></label>
+              <label class="fld"><span>H</span><input type="number" id="prop-h" min="8" /></label>
+            </div>
+            <label class="fld wide"><span>↻</span>
+              <select id="prop-rotate" class="sel" style="background:transparent;border:none;padding:0;height:auto">
+                <option value="0">Rotation 0°</option>
+                <option value="90">Rotation 90°</option>
+                <option value="180">Rotation 180°</option>
+                <option value="270">Rotation 270°</option>
+              </select>
+            </label>
+          </div>
+
+          <!-- Style -->
+          <div class="section">
+            <div class="section-title">Style</div>
+
+            <div class="inline-label"><span>Fill</span></div>
+            <div class="row">
+              <input type="color" class="swatch" id="prop-fill" value="#ffffff" />
+              <label class="fld" style="flex:1"><input type="text" id="prop-fill-hex" placeholder="none / #ffffff" /></label>
+              <button class="btn tiny" id="prop-fill-none" title="No fill">∅</button>
+            </div>
+
+            <div class="inline-label" style="margin-top:8px"><span>Border</span></div>
+            <div class="row">
+              <input type="color" class="swatch" id="prop-borderColor" value="#d1d5db" />
+              <label class="fld" style="flex:1"><span>W</span><input type="number" id="prop-borderWidth" min="0" /></label>
+              <label class="fld" style="flex:1"><span>R</span><input type="number" id="prop-radius" min="0" /></label>
+            </div>
+
+            <div class="inline-label" style="margin-top:8px"><span>Shadow</span></div>
+            <select class="sel" id="prop-shadow">
+              <option value="none">None</option>
+              <option value="sm">Small</option>
+              <option value="md">Medium</option>
+              <option value="lg">Large</option>
+            </select>
+
+            <div class="inline-label" style="margin-top:8px"><span>Opacity</span><span id="opacityVal">100%</span></div>
+            <input type="range" id="prop-opacity" min="0" max="100" value="100" />
+          </div>
+
+          <!-- Typography -->
+          <div class="section">
+            <div class="section-title">Typography</div>
+            <select class="sel" id="prop-fontFamily" style="margin-bottom:6px">
+              <option value="Inter, system-ui, sans-serif">Inter / System</option>
+              <option value="Georgia, 'Times New Roman', serif">Georgia (Serif)</option>
+              <option value="ui-monospace, Menlo, Consolas, monospace">Monospace</option>
+              <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
+              <option value="Verdana, sans-serif">Verdana</option>
+            </select>
+            <div class="grid2">
+              <label class="fld"><span>Aa</span><input type="number" id="prop-fontSize" min="6" /></label>
+              <label class="fld"><span>W</span>
+                <select id="prop-fontWeight" style="background:transparent;border:none;outline:none;width:100%;padding:0">
+                  <option value="300">Light</option>
+                  <option value="400">Regular</option>
+                  <option value="500">Medium</option>
+                  <option value="600">Semibold</option>
+                  <option value="700">Bold</option>
+                  <option value="800">Black</option>
+                </select>
+              </label>
+            </div>
+            <div class="row">
+              <input type="color" class="swatch" id="prop-color" value="#111827" />
+              <label class="fld" style="flex:1"><input type="text" id="prop-color-hex" /></label>
+              <label class="fld" style="flex:1"><span>LH</span><input type="number" id="prop-lineHeight" step="0.1" min="0.8" /></label>
+            </div>
+            <div class="btn-group" style="margin-top:6px">
+              <button class="btn" data-align="left">Left</button>
+              <button class="btn" data-align="center">Center</button>
+              <button class="btn" data-align="right">Right</button>
+            </div>
+          </div>
+
+          <!-- Content (contextual) -->
+          <div class="section" id="contentSection">
+            <div class="section-title">Content</div>
+            <div id="contentFields"></div>
+          </div>
+
+          <!-- Layer -->
+          <div class="section">
+            <div class="section-title">Layer</div>
+            <label class="fld wide"><span>Name</span><input type="text" id="prop-name" /></label>
+            <div class="btn-group" style="margin-bottom:6px">
+              <button class="btn" id="btnLayerUp" title="Bring forward">↑ Up</button>
+              <button class="btn" id="btnLayerDown" title="Send backward">↓ Down</button>
+            </div>
+            <div class="btn-group">
+              <button class="btn" id="btnLayerHide">Hide</button>
+              <button class="btn" id="btnLayerLock">Lock</button>
+              <button class="btn danger" id="btnLayerDelete">Delete</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- LAYERS TAB -->
+      <div class="tab-body" id="tab-layers" style="display:none">
+        <div id="layerTree"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ================= STATUS BAR ================= -->
+  <footer class="statusbar">
+    <span>X: <b id="statX">—</b> &nbsp; Y: <b id="statY">—</b></span>
+    <span>Device: <b id="statDevice">—</b></span>
+    <span>Zoom: <b id="statZoom">100%</b></span>
+    <span>Elements: <b id="statCount">0</b></span>
+    <span class="hint" id="statHint">V — select · H — hand · Space+drag — pan</span>
+  </footer>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-head"><span id="modalTitle">Export</span><button class="x" id="modalClose">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+<input type="file" id="fileInput" accept="application/json,.json" style="display:none" />
+
+<script>
+"use strict";
+/* ============================================================================
+   1. KONFIGURASI
+   ============================================================================ */
+const GRID_SIZE     = 8;      // ukuran snap grid (px)
+const MIN_SIZE      = 8;      // ukuran minimum elemen (px)
+const HISTORY_LIMIT = 50;     // maksimal langkah undo
+const STORAGE_KEY   = 'wireframe-studio.v1';
+const SAVE_DEBOUNCE = 600;    // ms
+const ZOOM_MIN = 0.1, ZOOM_MAX = 3;
+
+const SHADOWS = {
+  none: 'none',
+  sm:   '0 1px 2px rgba(15,23,42,.10)',
+  md:   '0 4px 10px rgba(15,23,42,.12)',
+  lg:   '0 14px 34px rgba(15,23,42,.20)'
+};
+
+/* Preset device frame */
+const DEVICES = {
+  iphone:  { name:'iPhone',  w:390,  h:844,  notch:true  },
+  android: { name:'Android', w:360,  h:800,  notch:true  },
+  tablet:  { name:'Tablet',  w:768,  h:1024, notch:false },
+  desktop: { name:'Desktop', w:1440, h:900,  notch:false },
+  custom:  { name:'Custom',  w:1000, h:700,  notch:false }
+};
+
+/* ---------------------------------------------------------------------------
+   TEMPLATE KOMPONEN
+   Setiap komponen: cat, label, icon, w, h, style default, content default
+   --------------------------------------------------------------------------- */
+const COMPONENTS = {
+  /* ---------------- LAYOUT ---------------- */
+  container: { cat:'Layout', label:'Container', icon:'▭', w:280, h:180, acceptsChildren:true,
+    style:{ fill:'#ffffff', borderColor:'#d1d5db', borderWidth:1, radius:8 }, content:{} },
+
+  section: { cat:'Layout', label:'Section', icon:'▤', w:300, h:120, acceptsChildren:true,
+    style:{ fill:'#f8fafc', borderColor:'#e2e8f0', borderWidth:1, radius:8 }, content:{} },
+
+  divider: { cat:'Layout', label:'Divider', icon:'—', w:240, h:2,
+    style:{ fill:'#d1d5db', borderWidth:0, radius:0 }, content:{} },
+
+  spacer: { cat:'Layout', label:'Spacer', icon:'␣', w:160, h:48,
+    style:{ fill:'#eff6ff', borderColor:'#93c5fd', borderWidth:1, radius:4 }, content:{} },
+
+  /* ---------------- NAVIGATION ---------------- */
+  navbar: { cat:'Navigation', label:'Navbar', icon:'☰', w:360, h:56,
+    style:{ fill:'#ffffff', borderColor:'#e5e7eb', borderWidth:1, radius:0 },
+    content:{ text:'Brand' } },
+
+  sidebar: { cat:'Navigation', label:'Sidebar', icon:'▥', w:200, h:320,
+    style:{ fill:'#ffffff', borderColor:'#e5e7eb', borderWidth:1, radius:8 }, content:{} },
+
+  tabs: { cat:'Navigation', label:'Tabs', icon:'⬓', w:300, h:44,
+    style:{ fill:'#ffffff', borderColor:'#e5e7eb', borderWidth:1, radius:8 }, content:{} },
+
+  breadcrumb: { cat:'Navigation', label:'Breadcrumb', icon:'›', w:260, h:24,
+    style:{ fill:'none', borderWidth:0, radius:0, fontSize:12, color:'#6b7280' }, content:{} },
+
+  /* ---------------- FORM ---------------- */
+  input: { cat:'Form', label:'Input', icon:'▭', w:260, h:66,
+    style:{ fill:'none', borderWidth:0, radius:0 },
+    content:{ label:'Email', placeholder:'you@example.com', helper:'' } },
+
+  textarea: { cat:'Form', label:'Textarea', icon:'▤', w:260, h:112,
+    style:{ fill:'none', borderWidth:0, radius:0 },
+    content:{ label:'Message', placeholder:'Write something…' } },
+
+  select: { cat:'Form', label:'Select', icon:'⌄', w:260, h:66,
+    style:{ fill:'none', borderWidth:0, radius:0 },
+    content:{ label:'Country', placeholder:'Select an option' } },
+
+  checkbox: { cat:'Form', label:'Checkbox', icon:'☑', w:190, h:24,
+    style:{ fill:'none', borderWidth:0, radius:0, fontSize:13 },
+    content:{ text:'Checkbox label', checked:true } },
+
+  radio: { cat:'Form', label:'Radio', icon:'◉', w:190, h:24,
+    style:{ fill:'none', borderWidth:0, radius:0, fontSize:13 },
+    content:{ text:'Radio option', checked:true } },
+
+  button: { cat:'Form', label:'Button', icon:'▬', w:132, h:40,
+    style:{ fill:'#3b82f6', borderWidth:0, radius:8, color:'#ffffff', fontSize:13,
+            fontWeight:'600', textAlign:'center' },
+    content:{ text:'Button' } },
+
+  toggle: { cat:'Form', label:'Toggle', icon:'⏻', w:170, h:24,
+    style:{ fill:'none', borderWidth:0, radius:0, fontSize:13 },
+    content:{ text:'Toggle', checked:true } },
+
+  /* ---------------- DISPLAY ---------------- */
+  card: { cat:'Display', label:'Card', icon:'▢', w:240, h:200,
+    style:{ fill:'#ffffff', borderColor:'#e5e7eb', borderWidth:1, radius:10, shadow:'sm' },
+    content:{ title:'Card title', desc:'Short description of the card content goes here.' } },
+
+  avatar: { cat:'Display', label:'Avatar', icon:'◯', w:48, h:48,
+    style:{ fill:'#dbeafe', borderWidth:0, radius:999, textAlign:'center' },
+    content:{ text:'AB' } },
+
+  badge: { cat:'Display', label:'Badge', icon:'●', w:60, h:20,
+    style:{ fill:'#dbeafe', color:'#1d4ed8', borderWidth:0, radius:999, fontSize:11,
+            fontWeight:'700', textAlign:'center' },
+    content:{ text:'Badge' } },
+
+  chip: { cat:'Display', label:'Chip', icon:'◖', w:92, h:28,
+    style:{ fill:'#f1f5f9', borderColor:'#e2e8f0', borderWidth:1, radius:999,
+            fontSize:12, textAlign:'center' },
+    content:{ text:'Chip' } },
+
+  image: { cat:'Display', label:'Image', icon:'🖼', w:200, h:140,
+    style:{ fill:'#f1f5f9', borderColor:'#e2e8f0', borderWidth:1, radius:8 }, content:{} },
+
+  icon: { cat:'Display', label:'Icon', icon:'★', w:34, h:34,
+    style:{ fill:'none', borderWidth:0, radius:0, color:'#3b82f6', textAlign:'center' },
+    content:{ text:'★' } },
+
+  /* ---------------- TYPOGRAPHY ---------------- */
+  h1: { cat:'Typography', label:'Heading H1', icon:'H1', w:320, h:46,
+    style:{ fill:'none', borderWidth:0, radius:0, fontSize:32, fontWeight:'700', color:'#0f172a' },
+    content:{ text:'Heading 1' } },
+
+  h2: { cat:'Typography', label:'Heading H2', icon:'H2', w:300, h:38,
+    style:{ fill:'none', borderWidth:0, radius:0, fontSize:24, fontWeight:'700', color:'#0f172a' },
+    content:{ text:'Heading 2' } },
+
+  h3: { cat:'Typography', label:'Heading H3', icon:'H3', w:280, h:32,
+    style:{ fill:'none', borderWidth:0, radius:0, fontSize:19, fontWeight:'600', color:'#0f172a' },
+    content:{ text:'Heading 3' } },
+
+  paragraph: { cat:'Typography', label:'Paragraph', icon:'¶', w:320, h:64,
+    style:{ fill:'none', borderWidth:0, radius:0, fontSize:14, color:'#475569' },
+    content:{ text:'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.' } },
+
+  label: { cat:'Typography', label:'Label', icon:'A', w:120, h:20,
+    style:{ fill:'none', borderWidth:0, radius:0, fontSize:13, fontWeight:'600', color:'#111827' },
+    content:{ text:'Label' } },
+
+  caption: { cat:'Typography', label:'Caption', icon:'a', w:160, h:18,
+    style:{ fill:'none', borderWidth:0, radius:0, fontSize:11, color:'#94a3b8' },
+    content:{ text:'Caption text' } },
+
+  /* ---------------- FEEDBACK ---------------- */
+  alert: { cat:'Feedback', label:'Alert', icon:'!', w:300, h:74,
+    style:{ fill:'#fffbeb', borderColor:'#fde68a', borderWidth:1, radius:8 },
+    content:{ title:'Heads up', text:'This is an informational alert message.' } },
+
+  toast: { cat:'Feedback', label:'Toast', icon:'▬', w:230, h:44,
+    style:{ fill:'#111827', color:'#ffffff', borderWidth:0, radius:10, shadow:'lg' },
+    content:{ text:'Saved successfully' } },
+
+  modal: { cat:'Feedback', label:'Modal', icon:'▣', w:320, h:220,
+    style:{ fill:'#ffffff', borderColor:'#e5e7eb', borderWidth:1, radius:12, shadow:'lg' },
+    content:{ title:'Modal title', text:'Modal body content goes here. Ask the user something.' } }
+};
+
+/* Field konten contextual per tipe komponen */
+const CONTENT_FIELDS = {
+  navbar:   [{ key:'text', label:'Brand text' }],
+  button:   [{ key:'text', label:'Label' }],
+  input:    [{ key:'label', label:'Label' }, { key:'placeholder', label:'Placeholder' }, { key:'helper', label:'Helper text' }],
+  textarea: [{ key:'label', label:'Label' }, { key:'placeholder', label:'Placeholder' }],
+  select:   [{ key:'label', label:'Label' }, { key:'placeholder', label:'Placeholder' }],
+  checkbox: [{ key:'text', label:'Label' }, { key:'checked', label:'Checked', type:'bool' }],
+  radio:    [{ key:'text', label:'Label' }, { key:'checked', label:'Checked', type:'bool' }],
+  toggle:   [{ key:'text', label:'Label' }, { key:'checked', label:'Checked', type:'bool' }],
+  card:     [{ key:'title', label:'Title' }, { key:'desc', label:'Description', type:'area' }],
+  avatar:   [{ key:'text', label:'Initials' }],
+  badge:    [{ key:'text', label:'Text' }],
+  chip:     [{ key:'text', label:'Text' }],
+  icon:     [{ key:'text', label:'Glyph' }],
+  h1:       [{ key:'text', label:'Text', type:'area' }],
+  h2:       [{ key:'text', label:'Text', type:'area' }],
+  h3:       [{ key:'text', label:'Text', type:'area' }],
+  paragraph:[{ key:'text', label:'Text', type:'area' }],
+  label:    [{ key:'text', label:'Text' }],
+  caption:  [{ key:'text', label:'Text' }],
+  alert:    [{ key:'title', label:'Title' }, { key:'text', label:'Message', type:'area' }],
+  toast:    [{ key:'text', label:'Message' }],
+  modal:    [{ key:'title', label:'Title' }, { key:'text', label:'Body', type:'area' }]
+};
+
+/* ============================================================================
+   2. STATE
+   ============================================================================ */
+const state = {
+  docName  : 'Untitled Design',
+  device   : 'iphone',
+  customW  : 1000,
+  customH  : 700,
+  chrome   : true,
+  grid     : true,
+  zoom     : 1,
+  tool     : 'select',
+  elements : [],   // array flat, urutan = z-order (index 0 = paling bawah)
+  selection: []
+};
+
+/* ============================================================================
+   3. UTILITAS
+   ============================================================================ */
+const $  = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g,
+  (m) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const snap  = (v) => Math.round(v / GRID_SIZE) * GRID_SIZE;
+const uid   = () => 'el_' + Math.random().toString(36).slice(2, 9);
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+function getEl(id)      { return state.elements.find(e => e.id === id) || null; }
+function getSelected()  { return state.selection.map(getEl).filter(Boolean); }
+function currentDevice(){
+  if (state.device === 'custom')
+    return { name:'Custom', w: Math.max(80, state.customW), h: Math.max(80, state.customH), notch:false };
+  return DEVICES[state.device];
+}
+
+/* Toast feedback */
+function toast(msg, type) {
+  const wrap = $('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type || '');
+  el.innerHTML = '<span class="tdot"></span>' + esc(msg);
+  wrap.appendChild(el);
+  setTimeout(() => {
+    el.style.transition = 'opacity .25s, transform .25s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(6px)';
+    setTimeout(() => el.remove(), 260);
+  }, 1800);
+}
+
+/* ============================================================================
+   4. RENDER ISI KOMPONEN  (state → innerHTML string)
+   ============================================================================ */
+function renderInner(el) {
+  const c = el.content || {};
+  const s = el.style;
+  const font = `font-family:${s.fontFamily};font-size:${s.fontSize}px;font-weight:${s.fontWeight};` +
+               `color:${s.color};text-align:${s.textAlign};line-height:${s.lineHeight}`;
+  const T = (v, d) => esc(v === undefined || v === null || v === '' ? d : v);
+
+  switch (el.type) {
+
+    /* ---------- LAYOUT ---------- */
+    case 'container':
+    case 'section':
+    case 'spacer':
+    case 'divider':
+      return '';
+
+    /* ---------- NAVIGATION ---------- */
+    case 'navbar':
+      return `<div style="display:flex;align-items:center;justify-content:space-between;height:100%;padding:0 14px;${font}">
+        <b style="font-size:15px">${T(c.text,'Brand')}</b>
+        <div style="display:flex;gap:14px;opacity:.62;font-size:12px"><span>Home</span><span>Features</span><span>Pricing</span></div>
+      </div>`;
+
+    case 'sidebar':
+      return `<div style="height:100%;padding:14px 10px;display:flex;flex-direction:column;gap:5px;${font}">
+        <div style="font-weight:700;font-size:14px;margin-bottom:8px">Menu</div>
+        ${['Dashboard','Projects','Team','Settings']
+          .map((x,i)=>`<div style="padding:8px 10px;border-radius:6px;font-size:13px;
+            background:${i===0?'rgba(59,130,246,.14)':'transparent'};
+            color:${i===0?'#2563eb':'inherit'};font-weight:${i===0?'600':'400'}">${x}</div>`)
+          .join('')}
+      </div>`;
+
+    case 'tabs':
+      return `<div style="display:flex;height:100%;align-items:stretch;${font}">
+        ${['Tab One','Tab Two','Tab Three']
+          .map((x,i)=>`<div style="flex:1;display:flex;align-items:center;justify-content:center;
+            font-size:13px;border-bottom:2px solid ${i===0?'#3b82f6':'transparent'};
+            color:${i===0?'#111827':'#6b7280'};font-weight:${i===0?'600':'400'}">${x}</div>`)
+          .join('')}
+      </div>`;
+
+    case 'breadcrumb':
+      return `<div style="display:flex;align-items:center;height:100%;gap:6px;${font}">
+        <span>Home</span><span style="opacity:.45">/</span>
+        <span>Projects</span><span style="opacity:.45">/</span>
+        <span style="color:#111827;font-weight:600">Current</span>
+      </div>`;
+
+    /* ---------- FORM ---------- */
+    case 'input':
+      return `<div style="display:flex;flex-direction:column;gap:5px;height:100%;justify-content:center;${font}">
+        ${c.label ? `<span style="font-size:12px;font-weight:600">${esc(c.label)}</span>` : ''}
+        <div style="display:flex;align-items:center;padding:0 10px;height:34px;flex:0 0 auto;
+             border:1px solid #d1d5db;border-radius:6px;background:#fff;color:#9ca3af;font-size:13px">
+          ${T(c.placeholder,'Placeholder…')}
+        </div>
+        ${c.helper ? `<span style="font-size:11px;color:#6b7280">${esc(c.helper)}</span>` : ''}
+      </div>`;
+
+    case 'textarea':
+      return `<div style="display:flex;flex-direction:column;gap:5px;height:100%;${font}">
+        ${c.label ? `<span style="font-size:12px;font-weight:600;flex:0 0 auto">${esc(c.label)}</span>` : ''}
+        <div style="flex:1;min-height:0;border:1px solid #d1d5db;border-radius:6px;background:#fff;
+             padding:8px 10px;color:#9ca3af;font-size:13px;overflow:hidden">${T(c.placeholder,'Write something…')}</div>
+      </div>`;
+
+    case 'select':
+      return `<div style="display:flex;flex-direction:column;gap:5px;height:100%;justify-content:center;${font}">
+        ${c.label ? `<span style="font-size:12px;font-weight:600">${esc(c.label)}</span>` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 10px;
+             height:34px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:#9ca3af;font-size:13px">
+          <span>${T(c.placeholder,'Select an option')}</span><span style="color:#9ca3af">▾</span>
+        </div>
+      </div>`;
+
+    case 'checkbox':
+      return `<div style="display:flex;align-items:center;gap:9px;height:100%;${font}">
+        <div style="width:16px;height:16px;flex:0 0 auto;border-radius:4px;display:flex;align-items:center;
+             justify-content:center;font-size:11px;color:#fff;
+             border:1px solid ${c.checked?'#3b82f6':'#9ca3af'};background:${c.checked?'#3b82f6':'#fff'}">
+          ${c.checked ? '✓' : ''}
+        </div>
+        <span style="font-size:13px">${T(c.text,'Checkbox label')}</span>
+      </div>`;
+
+    case 'radio':
+      return `<div style="display:flex;align-items:center;gap:9px;height:100%;${font}">
+        <div style="width:16px;height:16px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;
+             justify-content:center;border:1px solid ${c.checked?'#3b82f6':'#9ca3af'};background:#fff">
+          ${c.checked ? '<span style="width:8px;height:8px;border-radius:50%;background:#3b82f6"></span>' : ''}
+        </div>
+        <span style="font-size:13px">${T(c.text,'Radio option')}</span>
+      </div>`;
+
+    case 'button':
+      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;${font}">
+        ${T(c.text,'Button')}
+      </div>`;
+
+    case 'toggle':
+      return `<div style="display:flex;align-items:center;gap:10px;height:100%;${font}">
+        <div style="width:38px;height:22px;flex:0 0 auto;border-radius:11px;position:relative;
+             background:${c.checked?'#3b82f6':'#d1d5db'}">
+          <div style="position:absolute;top:2px;left:${c.checked?'18px':'2px'};width:18px;height:18px;
+               border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)"></div>
+        </div>
+        <span style="font-size:13px">${T(c.text,'Toggle')}</span>
+      </div>`;
+
+    /* ---------- DISPLAY ---------- */
+    case 'card':
+      return `<div style="display:flex;flex-direction:column;height:100%;${font}">
+        <div style="height:38%;flex:0 0 auto;background:#f1f5f9;border-bottom:1px solid #e5e7eb;
+             display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px">Image</div>
+        <div style="padding:12px;display:flex;flex-direction:column;gap:4px;overflow:hidden">
+          <div style="font-weight:700;font-size:14px">${T(c.title,'Card title')}</div>
+          <div style="font-size:12px;color:#6b7280;line-height:1.45">${T(c.desc,'Short description.')}</div>
+        </div>
+      </div>`;
+
+    case 'avatar': {
+      const fs = Math.max(9, Math.round((s.w || 48) * 0.36));
+      return `<div style="width:100%;height:100%;border-radius:50%;background:${s.fill && s.fill!=='none'?s.fill:'#dbeafe'};
+        color:${s.color};display:flex;align-items:center;justify-content:center;font-weight:700;
+        font-size:${fs}px;letter-spacing:.5px">${esc((c.text || 'AB').slice(0,2).toUpperCase())}</div>`;
+    }
+
+    case 'badge':
+      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;${font}">
+        ${T(c.text,'Badge')}
+      </div>`;
+
+    case 'chip':
+      return `<div style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
+        height:100%;padding:0 10px;${font}">
+        <span>${T(c.text,'Chip')}</span>
+        <span style="opacity:.5;font-size:14px;line-height:1">×</span>
+      </div>`;
+
+    case 'image':
+      return `<div style="position:relative;width:100%;height:100%;background:${s.fill && s.fill!=='none'?s.fill:'#f1f5f9'};overflow:hidden">
+        <div style="position:absolute;inset:0;background-image:
+          linear-gradient(to bottom right,transparent calc(50% - .5px),#cbd5e1 50%,transparent calc(50% + .5px)),
+          linear-gradient(to top right,transparent calc(50% - .5px),#cbd5e1 50%,transparent calc(50% + .5px))"></div>
+        <div style="position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:10px;
+             color:#94a3b8;letter-spacing:.5px">IMAGE</div>
+      </div>`;
+
+    case 'icon':
+      return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+        font-size:${Math.max(10, Math.round((s.h || 34) * 0.6))}px;line-height:1">${T(c.text,'★')}</div>`;
+
+    /* ---------- TYPOGRAPHY ---------- */
+    case 'h1':
+    case 'h2':
+    case 'h3':
+      return `<div style="display:flex;align-items:center;width:100%;height:100%;white-space:pre-wrap;${font}">
+        ${T(c.text,'Heading')}
+      </div>`;
+
+    case 'paragraph':
+      return `<div style="width:100%;height:100%;white-space:pre-wrap;overflow:hidden;${font}">
+        ${T(c.text,'Lorem ipsum dolor sit amet.')}
+      </div>`;
+
+    case 'label':
+      return `<div style="display:flex;align-items:center;width:100%;height:100%;${font}">
+        ${T(c.text,'Label')}
+      </div>`;
+
+    case 'caption':
+      return `<div style="display:flex;align-items:center;width:100%;height:100%;${font}">
+        ${T(c.text,'Caption text')}
+      </div>`;
+
+    /* ---------- FEEDBACK ---------- */
+    case 'alert':
+      return `<div style="display:flex;gap:10px;align-items:flex-start;padding:12px;height:100%;${font}">
+        <div style="width:18px;height:18px;flex:0 0 auto;border-radius:50%;background:#f59e0b;color:#fff;
+             display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">!</div>
+        <div style="font-size:12px;line-height:1.45;min-width:0">
+          <b style="display:block;margin-bottom:2px">${T(c.title,'Heads up')}</b>
+          <span style="color:#6b7280">${T(c.text,'This is an informational alert message.')}</span>
+        </div>
+      </div>`;
+
+    case 'toast':
+      return `<div style="display:flex;align-items:center;gap:9px;height:100%;padding:0 14px;font-size:12px;${font}">
+        <span style="width:8px;height:8px;flex:0 0 auto;border-radius:50%;background:#22c55e"></span>
+        ${T(c.text,'Saved successfully')}
+      </div>`;
+
+    case 'modal':
+      return `<div style="display:flex;flex-direction:column;height:100%;${font}">
+        <div style="padding:14px 16px;border-bottom:1px solid #e5e7eb;font-weight:700;font-size:14px;flex:0 0 auto">
+          ${T(c.title,'Modal title')}
+        </div>
+        <div style="padding:16px;flex:1;min-height:0;font-size:12px;color:#6b7280;line-height:1.5;overflow:hidden">
+          ${T(c.text,'Modal body content goes here.')}
+        </div>
+        <div style="padding:12px 16px;display:flex;justify-content:flex-end;gap:8px;
+             border-top:1px solid #e5e7eb;flex:0 0 auto">
+          <div style="padding:7px 14px;border-radius:6px;background:#f3f4f6;font-size:12px">Cancel</div>
+          <div style="padding:7px 14px;border-radius:6px;background:#3b82f6;color:#fff;font-size:12px">Confirm</div>
+        </div>
+      </div>`;
+
+    default:
+      return '';
+  }
+}
+
+/* ============================================================================
+   5. RENDERING (state → DOM)
+   ============================================================================ */
+const deviceFrame  = $('deviceFrame');
+const frameContent = $('frameContent');
+const overlay      = $('overlay');
+const canvasScroll = $('canvasScroll');
+const frameWrapper = $('frameWrapper');
+const frameHolder  = $('frameHolder');
+
+/** Terapkan style kotak ke node elemen */
+function applyNodeStyle(n, el) {
+  const s = el.style;
+  n.style.position   = 'absolute';
+  n.style.left       = s.x + 'px';
+  n.style.top        = s.y + 'px';
+  n.style.width      = s.w + 'px';
+  n.style.height     = s.h + 'px';
+  n.style.boxSizing  = 'border-box';
+  n.style.background = (!s.fill || s.fill === 'none') ? 'transparent' : s.fill;
+  n.style.border     = (s.borderWidth > 0) ? `${s.borderWidth}px solid ${s.borderColor}` : 'none';
+  n.style.borderRadius = (s.radius || 0) + 'px';
+  n.style.boxShadow  = SHADOWS[s.shadow] || 'none';
+  n.style.opacity    = (s.opacity == null ? 1 : s.opacity);
+  n.style.transform  = s.rotate ? `rotate(${s.rotate}deg)` : '';
+  n.style.overflow   = 'hidden';
+  n.style.fontFamily = s.fontFamily;
+  n.style.fontSize   = s.fontSize + 'px';
+  n.style.fontWeight = s.fontWeight;
+  n.style.color      = s.color;
+  n.style.textAlign  = s.textAlign;
+  n.style.lineHeight = String(s.lineHeight);
+}
+
+/** Render ulang seluruh canvas dari state */
+function renderCanvas() {
+  frameContent.innerHTML = '';
+  const nodes = new Map();
+
+  // 1) buat semua node
+  state.elements.forEach(el => {
+    const n = document.createElement('div');
+    n.className = 'wf-el';
+    n.dataset.id = el.id;
+    applyNodeStyle(n, el);
+    if (el.hidden) n.style.display = 'none';
+
+    const content = document.createElement('div');
+    content.className = 'wf-content';
+    content.style.cssText = 'position:absolute;inset:0;';
+    content.innerHTML = renderInner(el);
+    n.appendChild(content);
+
+    nodes.set(el.id, n);
+  });
+
+  // 2) susun hirarki (urutan array = z-order)
+  state.elements.forEach(el => {
+    const parentNode = (el.parentId && nodes.get(el.parentId)) ? nodes.get(el.parentId) : frameContent;
+    parentNode.appendChild(nodes.get(el.id));
+  });
+
+  updateSelectionBox();
+  updateStatus();
+}
+
+/** Sinkronkan SATU elemen ke DOM (tanpa rebuild penuh) */
+function syncElement(el) {
+  const n = frameContent.querySelector(`.wf-el[data-id="${el.id}"]`);
+  if (!n) return;
+  applyNodeStyle(n, el);
+  n.style.display = el.hidden ? 'none' : '';
+  const content = n.querySelector(':scope > .wf-content');
+  if (content) content.innerHTML = renderInner(el);
+}
+
+/** Render penuh: canvas + layers + inspector */
+function renderAll() {
+  renderCanvas();
+  renderLayers();
+  updateInspector();
+  updateStatus();
+}
+
+/* ---------- SELECTION BOX ---------- */
+function updateSelectionBox() {
+  overlay.innerHTML = '';
+  const sel = getSelected();
+  if (!sel.length) return;
+
+  const fr = deviceFrame.getBoundingClientRect();
+  const z  = state.zoom || 1;
+  overlay.style.setProperty('--hs', (8 / z) + 'px');
+
+  sel.forEach((el, idx) => {
+    const node = frameContent.querySelector(`.wf-el[data-id="${el.id}"]`);
+    if (!node) return;
+    const r = node.getBoundingClientRect();
+    const box = document.createElement('div');
+    box.className = 'sel-box' + (idx > 0 ? ' secondary' : '');
+    box.style.left   = ((r.left - fr.left) / z) + 'px';
+    box.style.top    = ((r.top  - fr.top ) / z) + 'px';
+    box.style.width  = (r.width  / z) + 'px';
+    box.style.height = (r.height / z) + 'px';
+
+    // 8 handle hanya untuk single selection
+    if (sel.length === 1) {
+      ['nw','n','ne','e','se','s','sw','w'].forEach(dir => {
+        const h = document.createElement('div');
+        h.className = 'handle ' + dir;
+        h.dataset.dir = dir;
+        box.appendChild(h);
+      });
+    }
+    overlay.appendChild(box);
+  });
+}
+
+/* ---------- STATUS BAR ---------- */
+function updateStatus() {
+  const d = currentDevice();
+  $('statDevice').textContent = `${d.name} ${d.w} × ${d.h}`;
+  $('statZoom').textContent   = Math.round(state.zoom * 100) + '%';
+  $('statCount').textContent  = state.elements.length;
+  $('zoomLabel').textContent  = Math.round(state.zoom * 100) + '%';
+  $('statHint').textContent   = state.tool === 'hand'
+    ? 'Hand tool — drag untuk pan · V untuk select'
+    : 'V — select · H — hand · Space+drag — pan';
+  document.querySelectorAll('.tab-body');
+}
+
+/* ============================================================================
+   6. DEVICE FRAME & ZOOM
+   ============================================================================ */
+function applyDevice() {
+  const d = currentDevice();
+  deviceFrame.style.width  = d.w + 'px';
+  deviceFrame.style.height = d.h + 'px';
+  frameWrapper.style.width  = d.w + 'px';
+  frameWrapper.style.height = d.h + 'px';
+
+  deviceFrame.classList.toggle('chrome', state.chrome);
+  const showNotch = state.chrome && d.notch;
+  $('notch').style.display = showNotch ? 'block' : 'none';
+
+  $('gridOverlay').style.display = state.grid ? 'block' : 'none';
+  $('btnGrid').classList.toggle('active', state.grid);
+
+  updateZoomSize();
+  updateStatus();
+}
+
+function updateZoomSize() {
+  const d = currentDevice();
+  frameHolder.style.width  = (d.w * state.zoom) + 'px';
+  frameHolder.style.height = (d.h * state.zoom) + 'px';
+  frameWrapper.style.transform = `scale(${state.zoom})`;
+  requestAnimationFrame(updateSelectionBox);
+}
+
+function setZoom(z) {
+  state.zoom = clamp(z, ZOOM_MIN, ZOOM_MAX);
+  updateZoomSize();
+  updateStatus();
+  updateSelectionBox();
+}
+
+function fitZoom() {
+  const d = currentDevice();
+  const r = canvasScroll.getBoundingClientRect();
+  const z = Math.min((r.width - 110) / d.w, (r.height - 110) / d.h);
+  return clamp(z, ZOOM_MIN, 1.6);
+}
+
+/* ============================================================================
+   7. CRUD ELEMEN
+   ============================================================================ */
+function defaultStyle() {
+  return {
+    x:0, y:0, w:100, h:40, rotate:0,
+    fill:'#ffffff', borderColor:'#d1d5db', borderWidth:0, radius:6,
+    shadow:'none', opacity:1,
+    fontFamily:'Inter, system-ui, sans-serif', fontSize:14, fontWeight:'400',
+    color:'#111827', textAlign:'left', lineHeight:1.4
+  };
+}
+
+/**
+ * Tambah komponen baru ke canvas.
+ * @param {string} type
+ * @param {number} x  koordinat relatif terhadap parent (frame bila parentId null)
+ * @param {number} y
+ * @param {string|null} parentId
+ */
+function addComponent(type, x, y, parentId) {
+  const def = COMPONENTS[type];
+  if (!def) return null;
+
+  parentId = parentId || null;
+  const id = uid();
+  const st = Object.assign(defaultStyle(), clone(def.style || {}), {
+    x: 0, y: 0, w: def.w, h: def.h
+  });
+
+  const el = {
+    id, type,
+    name: def.label,
+    parentId,
+    hidden: false,
+    locked: false,
+    content: clone(def.content || {}),
+    style: st
+  };
+
+  // hitung batas parent
+  const bounds = parentId ? (() => {
+    const p = getEl(parentId);
+    return p ? { w: p.style.w, h: p.style.h } : { w: currentDevice().w, h: currentDevice().h };
+  })() : { w: currentDevice().w, h: currentDevice().h };
+
+  el.style.x = clamp(Math.round(x), 0, Math.max(0, bounds.w - st.w));
+  el.style.y = clamp(Math.round(y), 0, Math.max(0, bounds.h - st.h));
+
+  state.elements.push(el);
+  state.selection = [id];
+
+  renderCanvas();
+  renderLayers();
+  updateInspector();
+  pushHistory();
+  saveSoon();
+  return el;
+}
+
+/** Update properti style elemen (live) */
+function applyStyle(prop, value) {
+  const sel = getSelected();
+  if (!sel.length) return;
+  sel.forEach(el => {
+    if (el.locked) return;
+    el.style[prop] = value;
+    syncElement(el);
+  });
+  updateSelectionBox();
+  updateStatus();
+  saveSoon();
+  scheduleHistory();
+}
+
+/** Update field konten elemen */
+function applyContent(key, value) {
+  const sel = getSelected();
+  if (!sel.length) return;
+  sel.forEach(el => {
+    if (!el.content) el.content = {};
+    el.content[key] = value;
+    syncElement(el);
+  });
+  saveSoon();
+  scheduleHistory();
+}
+
+/** Hapus elemen terpilih (rekursif ke anak) */
+function deleteSelected() {
+  if (!state.selection.length) return;
+  const toDelete = new Set();
+  const collect = (id) => {
+    toDelete.add(id);
+    state.elements.filter(e => e.parentId === id).forEach(ch => collect(ch.id));
+  };
+  state.selection.forEach(collect);
+  state.elements = state.elements.filter(e => !toDelete.has(e.id));
+  state.selection = [];
+  renderAll();
+  pushHistory();
+  saveSoon();
+  toast('Deleted ' + toDelete.size + ' element(s)', 'info');
+}
+
+/** Duplikasi elemen terpilih */
+function duplicateSelected() {
+  if (!state.selection.length) return;
+  const newIds = [];
+  state.selection.slice().forEach(id => {
+    const src = getEl(id);
+    if (!src) return;
+    const copy = clone(src);
+    copy.id = uid();
+    copy.name = src.name + ' copy';
+    copy.style.x = src.style.x + 16;
+    copy.style.y = src.style.y + 16;
+    // pastikan masih dalam frame
+    copy.style.x = Math.max(0, copy.style.x);
+    copy.style.y = Math.max(0, copy.style.y);
+    state.elements.push(copy);
+    newIds.push(copy.id);
+  });
+  state.selection = newIds;
+  renderAll();
+  pushHistory();
+  saveSoon();
+  toast('Duplicated', 'info');
+}
+
+/* ============================================================================
+   8. LIBRARY (kiri)
+   ============================================================================ */
+function buildLibrary() {
+  const lib = $('library');
+  lib.innerHTML = '';
+  const cats = {};
+  Object.keys(COMPONENTS).forEach(k => {
+    const c = COMPONENTS[k];
+    (cats[c.cat] = cats[c.cat] || []).push({ key:k, def:c });
+  });
+
+  Object.keys(cats).forEach(catName => {
+    const wrap = document.createElement('div');
+    wrap.className = 'cat';
+    wrap.dataset.cat = catName;
+
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+    head.innerHTML = `<span class="chev">▼</span><span>${esc(catName)}</span>`;
+    head.addEventListener('click', () => wrap.classList.toggle('closed'));
+
+    const body = document.createElement('div');
+    body.className = 'cat-body';
+
+    cats[catName].forEach(({ key, def }) => {
+      const item = document.createElement('div');
+      item.className = 'comp-item';
+      item.dataset.type = key;
+      item.dataset.search = (def.label + ' ' + catName + ' ' + key).toLowerCase();
+      item.innerHTML = `<span class="ci">${def.icon}</span><span>${esc(def.label)}</span>`;
+      item.addEventListener('pointerdown', (e) => startLibraryDrag(e, key));
+      body.appendChild(item);
+    });
+
+    wrap.appendChild(head);
+    wrap.appendChild(body);
+    lib.appendChild(wrap);
+  });
+}
+
+/* filter pencarian */
+$('compSearch').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.comp-item').forEach(item => {
+    const match = !q || item.dataset.search.includes(q);
+    item.style.display = match ? '' : 'none';
+  });
+  document.querySelectorAll('.cat').forEach(cat => {
+    const any = [...cat.querySelectorAll('.comp-item')].some(i => i.style.display !== 'none');
+    cat.style.display = any ? '' : 'none';
+    if (q && any) cat.classList.remove('closed');
+  });
+});
+
+/* ---------- DRAG DARI LIBRARY (pointer events) ---------- */
+let libDrag = null;
+
+function startLibraryDrag(e, type) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+
+  const def = COMPONENTS[type];
+  const ghost = document.createElement('div');
+  ghost.className = 'lib-ghost';
+  ghost.textContent = def.label;
+  ghost.style.left = e.clientX + 'px';
+  ghost.style.top  = e.clientY + 'px';
+  document.body.appendChild(ghost);
+
+  libDrag = { type, ghost, moved: false };
+
+  window.addEventListener('pointermove', onLibraryDragMove);
+  window.addEventListener('pointerup', onLibraryDragUp, { once: true });
+}
+
+function onLibraryDragMove(e) {
+  if (!libDrag) return;
+  libDrag.moved = true;
+  libDrag.ghost.style.left = e.clientX + 'px';
+  libDrag.ghost.style.top  = e.clientY + 'px';
+}
+
+function onLibraryDragUp(e) {
+  window.removeEventListener('pointermove', onLibraryDragMove);
+  if (!libDrag) return;
+  const { type, ghost, moved } = libDrag;
+  ghost.remove();
+  libDrag = null;
+
+  const fr = deviceFrame.getBoundingClientRect();
+  const inside = e.clientX >= fr.left && e.clientX <= fr.right &&
+                 e.clientY >= fr.top  && e.clientY <= fr.bottom;
+
+  if (!moved) {
+    // klik = auto-place di tengah frame
+    const d = currentDevice();
+    const def = COMPONENTS[type];
+    addComponent(type, (d.w - def.w) / 2, (d.h - def.h) / 2, null);
+    toast(def.label + ' added', 'info');
+    return;
+  }
+
+  if (!inside) return; // drop di luar frame → diabaikan
+
+  let x = (e.clientX - fr.left) / state.zoom;
+  let y = (e.clientY - fr.top)  / state.zoom;
+
+  // cari container di bawah pointer
+  let parentId = null;
+  const under = document.elementFromPoint(e.clientX, e.clientY);
+  const targetNode = under && under.closest ? under.closest('.wf-el') : null;
+  if (targetNode) {
+    const pel = getEl(targetNode.dataset.id);
+    if (pel && COMPONENTS[pel.type] && COMPONENTS[pel.type].acceptsChildren) {
+      parentId = pel.id;
+      const pr = targetNode.getBoundingClientRect();
+      x = (e.clientX - pr.left) / state.zoom;
+      y = (e.clientY - pr.top)  / state.zoom;
+    }
+  }
+
+  const def = COMPONENTS[type];
+  const el = addComponent(type, x - def.w / 2, y - def.h / 2, parentId);
+  if (el) toast(def.label + ' added', 'ok');
+}
+
+/* ============================================================================
+   9. CANVAS INTERACTION (select / move / resize / marquee / pan)
+   ============================================================================ */
+let dragState = null;   // { mode:'move'|'resize'|'marquee'|'pan', ... }
+let spaceDown = false;
+
+deviceFrame.addEventListener('pointerdown', (e) => {
+  if (e.button === 2) return;
+
+  // --- Pan ---
+  if (state.tool === 'hand' || spaceDown || e.button === 1) {
+    startPan(e);
+    return;
+  }
+
+  // --- Resize handle ---
+  const handle = e.target.closest ? e.target.closest('.handle') : null;
+  if (handle) {
+    startResize(e, handle.dataset.dir);
+    return;
+  }
+
+  // --- Elemen ---
+  const node = e.target.closest ? e.target.closest('.wf-el') : null;
+  if (node) {
+    const id = node.dataset.id;
+    const el = getEl(id);
+    if (!el) return;
+
+    if (e.shiftKey) {
+      if (state.selection.includes(id)) state.selection = state.selection.filter(s => s !== id);
+      else state.selection.push(id);
+    } else if (!state.selection.includes(id)) {
+      state.selection = [id];
+    }
+
+    renderLayers();
+    updateInspector();
+    updateSelectionBox();
+
+    if (!el.locked) startMove(e);
+    return;
+  }
+
+  // --- Klik area kosong: deselect + marquee ---
+  if (!e.shiftKey) {
+    state.selection = [];
+    renderLayers();
+    updateInspector();
+    updateSelectionBox();
+  }
+  startMarquee(e);
+});
+
+/* ---------- MOVE ---------- */
+function startMove(e) {
+  const sel = getSelected().filter(el => !el.locked);
+  if (!sel.length) return;
+
+  dragState = {
+    mode: 'move',
+    startX: e.clientX,
+    startY: e.clientY,
+    items: sel.map(el => ({ el, ox: el.style.x, oy: el.style.y }))
+  };
+  window.addEventListener('pointermove', onDragMove);
+  window.addEventListener('pointerup', onDragUp, { once: true });
+  e.preventDefault();
+}
+
+/* ---------- RESIZE ---------- */
+function startResize(e, dir) {
+  const sel = getSelected();
+  if (sel.length !== 1) return;
+  const el = sel[0];
+  if (el.locked) return;
+
+  dragState = {
+    mode: 'resize',
+    dir,
+    startX: e.clientX,
+    startY: e.clientY,
+    el,
+    ox: el.style.x, oy: el.style.y,
+    ow: el.style.w, oh: el.style.h,
+    ratio: el.style.w / Math.max(1, el.style.h)
+  };
+  window.addEventListener('pointermove', onDragMove);
+  window.addEventListener('pointerup', onDragUp, { once: true });
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+/* ---------- MARQUEE ---------- */
+function startMarquee(e) {
+  const fr = deviceFrame.getBoundingClientRect();
+  const z = state.zoom;
+  const x0 = (e.clientX - fr.left) / z;
+  const y0 = (e.clientY - fr.top) / z;
+
+  const box = document.createElement('div');
+  box.className = 'marquee';
+  overlay.appendChild(box);
+
+  dragState = { mode:'marquee', x0, y0, box, fr, z, additive: e.shiftKey };
+  window.addEventListener('pointermove', onDragMove);
+  window.addEventListener('pointerup', onDragUp, { once: true });
+}
+
+/* ---------- PAN ---------- */
+function startPan(e) {
+  canvasScroll.classList.add('panning');
+  dragState = {
+    mode: 'pan',
+    startX: e.clientX, startY: e.clientY,
+    sl: canvasScroll.scrollLeft, st: canvasScroll.scrollTop
+  };
+  window.addEventListener('pointermove', onDragMove);
+  window.addEventListener('pointerup', onDragUp, { once: true });
+  e.preventDefault();
+}
+
+/* ---------- SHARED MOVE HANDLER ---------- */
+function onDragMove(e) {
+  if (!dragState) return;
+  const z = state.zoom || 1;
+
+  switch (dragState.mode) {
+
+    case 'move': {
+      let dx = (e.clientX - dragState.startX) / z;
+      let dy = (e.clientY - dragState.startY) / z;
+      if (e.altKey) { dx = Math.round(dx); dy = Math.round(dy); }
+      dragState.items.forEach(it => {
+        it.el.style.x = Math.round(it.ox + dx);
+        it.el.style.y = Math.round(it.oy + dy);
+        syncElement(it.el);
+      });
+      updateSelectionBox();
+      break;
+    }
+
+    case 'resize': {
+      const d = dragState;
+      let dx = (e.clientX - d.startX) / z;
+      let dy = (e.clientY - d.startY) / z;
+      let x = d.ox, y = d.oy, w = d.ow, h = d.oh;
+      const dir = d.dir;
+
+      if (dir.includes('e')) w = d.ow + dx;
+      if (dir.includes('s')) h = d.oh + dy;
+      if (dir.includes('w')) { w = d.ow - dx; x = d.ox + dx; }
+      if (dir.includes('n')) { h = d.oh - dy; y = d.oy + dy; }
+
+      // preserve aspect ratio dengan Shift
+      if (e.shiftKey && dir.length === 2) {
+        if (Math.abs(w - d.ow) > Math.abs(h - d.oh)) {
+          h = w / d.ratio;
+          if (dir.includes('n')) y = d.oy + (d.oh - h);
+        } else {
+          w = h * d.ratio;
+          if (dir.includes('w')) x = d.ox + (d.ow - w);
+        }
+      }
+
+      // snap ke grid
+      if (!e.altKey) {
+        w = Math.max(MIN_SIZE, snap(w));
+        h = Math.max(MIN_SIZE, snap(h));
+        x = snap(x); y = snap(y);
+      }
+
+      // minimum size
+      if (w < MIN_SIZE) { if (dir.includes('w')) x = d.ox + d.ow - MIN_SIZE; w = MIN_SIZE; }
+      if (h < MIN_SIZE) { if (dir.includes('n')) y = d.oy + d.oh - MIN_SIZE; h = MIN_SIZE; }
+
+      d.el.style.x = Math.round(x);
+      d.el.style.y = Math.round(y);
+      d.el.style.w = Math.round(w);
+      d.el.style.h = Math.round(h);
+      syncElement(d.el);
+      updateSelectionBox();
+      updateInspector();
+      break;
+    }
+
+    case 'marquee': {
+      const d = dragState;
+      const x1 = (e.clientX - d.fr.left) / d.z;
+      const y1 = (e.clientY - d.fr.top)  / d.z;
+      const left = Math.min(d.x0, x1), top = Math.min(d.y0, y1);
+      const w = Math.abs(x1 - d.x0), h = Math.abs(y1 - d.y0);
+      d.box.style.left = left + 'px';
+      d.box.style.top  = top + 'px';
+      d.box.style.width = w + 'px';
+      d.box.style.height = h + 'px';
+      break;
+    }
+
+    case 'pan': {
+      canvasScroll.scrollLeft = dragState.sl - (e.clientX - dragState.startX);
+      canvasScroll.scrollTop  = dragState.st - (e.clientY - dragState.startY);
+      break;
+    }
+  }
+}
+
+/* ---------- SHARED UP HANDLER ---------- */
+function onDragUp(e) {
+  window.removeEventListener('pointermove', onDragMove);
+  if (!dragState) return;
+  const d = dragState;
+  dragState = null;
+  canvasScroll.classList.remove('panning');
+
+  if (d.mode === 'move' || d.mode === 'resize') {
+    // clamp ke dalam parent / frame
+    const items = d.mode === 'move' ? d.items : [{ el: d.el }];
+    items.forEach(it => {
+      const el = it.el;
+      const bw = el.parentId ? (getEl(el.parentId) || { style: currentDevice() }).style.w : currentDevice().w;
+      const bh = el.parentId ? (getEl(el.parentId) || { style: currentDevice() }).style.h : currentDevice().h;
+      el.style.x = clamp(el.style.x, 0, Math.max(0, bw - el.style.w));
+      el.style.y = clamp(el.style.y, 0, Math.max(0, bh - el.style.h));
+      syncElement(el);
+    });
+    updateSelectionBox();
+    updateInspector();
+    pushHistory();
+    saveSoon();
+
+  } else if (d.mode === 'marquee') {
+    d.box.remove();
+    const x1 = (e.clientX - d.fr.left) / d.z;
+    const y1 = (e.clientY - d.fr.top)  / d.z;
+    const rLeft = Math.min(d.x0, x1), rTop = Math.min(d.y0, y1);
+    const rW = Math.abs(x1 - d.x0), rH = Math.abs(y1 - d.y0);
+
+    if (rW > 3 || rH > 3) {
+      const hits = [];
+      state.elements.forEach(el => {
+        if (el.hidden) return;
+        const node = frameContent.querySelector(`.wf-el[data-id="${el.id}"]`);
+        if (!node) return;
+        const r = node.getBoundingClientRect();
+        const l = (r.left - d.fr.left) / d.z;
+        const t = (r.top  - d.fr.top ) / d.z;
+        const w = r.width / d.z, h = r.height / d.z;
+        if (l < rLeft + rW && l + w > rLeft && t < rTop + rH && t + h > rTop) hits.push(el.id);
+      });
+      state.selection = d.additive
+        ? Array.from(new Set(state.selection.concat(hits)))
+        : hits;
+      renderLayers();
+      updateInspector();
+      updateSelectionBox();
+    }
+  }
+}
+
+/* track posisi mouse untuk status bar */
+deviceFrame.addEventListener('pointermove', (e) => {
+  const fr = deviceFrame.getBoundingClientRect();
+  const x = Math.round((e.clientX - fr.left) / state.zoom);
+  const y = Math.round((e.clientY - fr.top)  / state.zoom);
+  $('statX').textContent = x;
+  $('statY').textContent = y;
+});
+deviceFrame.addEventListener('pointerleave', () => {
+  $('statX').textContent = '—';
+  $('statY').textContent = '—';
+});
+
+/* Ctrl + scroll = zoom, scroll biasa = scroll normal */
+canvasScroll.addEventListener('wheel', (e) => {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoom(state.zoom + delta);
+  }
+}, { passive: false });
+
+/* Space = pan sementara */
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !isTyping(e.target)) {
+    spaceDown = true;
+    canvasScroll.classList.add('tool-hand');
+  }
+});
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') {
+    spaceDown = false;
+    canvasScroll.classList.remove('tool-hand');
+  }
+});
+
+/* ============================================================================
+   10. INSPECTOR (kanan)
+   ============================================================================ */
+function isTyping(t) {
+  if (!t) return false;
+  const tag = (t.tagName || '').toLowerCase();
+  return tag === 'input' || tag === 'textarea' || tag === 'select' || t.isContentEditable;
+}
+
+function setVal(id, v) {
+  const inp = $(id);
+  if (!inp) return;
+  if (document.activeElement === inp) return;
+  inp.value = v;
+}
+
+function hexOrNull(v) {
+  if (!v) return null;
+  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v) ? v : null;
+}
+
+/** Populate inspector dari selection */
+function updateInspector() {
+  const sel = getSelected();
+  const insp = $('inspector');
+  const empty = $('inspectorEmpty');
+
+  if (!sel.length) {
+    insp.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  insp.style.display = 'block';
+  empty.style.display = 'none';
+
+  const a = sel[0];
+  const s = a.style;
+
+  setVal('prop-x', Math.round(s.x));
+  setVal('prop-y', Math.round(s.y));
+  setVal('prop-w', Math.round(s.w));
+  setVal('prop-h', Math.round(s.h));
+  setVal('prop-rotate', String(s.rotate || 0));
+
+  const fillHex = hexOrNull(s.fill) || '#ffffff';
+  setVal('prop-fill', fillHex);
+  setVal('prop-fill-hex', s.fill || 'none');
+
+  setVal('prop-borderColor', hexOrNull(s.borderColor) || '#d1d5db');
+  setVal('prop-borderWidth', s.borderWidth || 0);
+  setVal('prop-radius', s.radius || 0);
+  setVal('prop-shadow', s.shadow || 'none');
+
+  setVal('prop-opacity', Math.round((s.opacity == null ? 1 : s.opacity) * 100));
+  $('opacityVal').textContent = Math.round((s.opacity == null ? 1 : s.opacity) * 100) + '%';
+
+  setVal('prop-fontFamily', s.fontFamily);
+  setVal('prop-fontSize', s.fontSize);
+  setVal('prop-fontWeight', String(s.fontWeight));
+  setVal('prop-color', hexOrNull(s.color) || '#111827');
+  setVal('prop-color-hex', s.color);
+  setVal('prop-lineHeight', s.lineHeight);
+
+  document.querySelectorAll('[data-align]').forEach(b => {
+    b.classList.toggle('active', b.dataset.align === s.textAlign);
+  });
+
+  setVal('prop-name', sel.length > 1 ? '' : a.name);
+
+  renderContentFields(sel);
+}
+
+/** Field konten contextual */
+function renderContentFields(sel) {
+  const wrap = $('contentFields');
+  wrap.innerHTML = '';
+  const a = sel[0];
+  const fields = CONTENT_FIELDS[a.type];
+
+  if (!fields) {
+    wrap.innerHTML = '<div style="color:#666;font-size:11.5px">No editable content for this component.</div>';
+    return;
+  }
+
+  fields.forEach(f => {
+    const c = a.content || {};
+    if (f.type === 'bool') {
+      const lab = document.createElement('label');
+      lab.className = 'chk';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!c[f.key];
+      cb.addEventListener('change', () => {
+        applyContent(f.key, cb.checked);
+        syncElement(a);
+      });
+      lab.appendChild(cb);
+      lab.appendChild(document.createTextNode(f.label));
+      wrap.appendChild(lab);
+      return;
+    }
+
+    const lbl = document.createElement('div');
+    lbl.className = 'inline-label';
+    lbl.innerHTML = `<span>${esc(f.label)}</span>`;
+    wrap.appendChild(lbl);
+
+    let input;
+    if (f.type === 'area') {
+      input = document.createElement('textarea');
+      input.className = 'ta';
+      input.rows = 3;
+    } else {
+      input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'fld';
+      input.style.cssText = 'width:100%;height:28px;background:#262626;border:1px solid #333;border-radius:5px;padding:0 7px;outline:none;margin-bottom:6px';
+    }
+    input.value = c[f.key] == null ? '' : c[f.key];
+    input.addEventListener('input', () => {
+      applyContent(f.key, input.value);
+      if (a.type === 'avatar') syncElement(a);
+    });
+    wrap.appendChild(input);
+  });
+}
+
+/* ---------- BINDING INSPECTOR ---------- */
+function bindNum(id, prop, min) {
+  const inp = $(id);
+  inp.addEventListener('input', () => {
+    const v = parseFloat(inp.value);
+    if (isNaN(v)) return;
+    applyStyle(prop, min != null ? Math.max(min, v) : v);
+  });
+}
+bindNum('prop-x', 'x');
+bindNum('prop-y', 'y');
+bindNum('prop-w', 'w', MIN_SIZE);
+bindNum('prop-h', 'h', MIN_SIZE);
+bindNum('prop-borderWidth', 'borderWidth', 0);
+bindNum('prop-radius', 'radius', 0);
+bindNum('prop-fontSize', 'fontSize', 6);
+bindNum('prop-lineHeight', 'lineHeight', 0.8);
+
+$('prop-rotate').addEventListener('change', (e) => applyStyle('rotate', parseFloat(e.target.value)));
+
+$('prop-fill').addEventListener('input', (e) => {
+  applyStyle('fill', e.target.value);
+  setVal('prop-fill-hex', e.target.value);
+});
+$('prop-fill-hex').addEventListener('input', (e) => {
+  const v = e.target.value.trim();
+  applyStyle('fill', v === '' ? 'none' : v);
+  const hx = hexOrNull(v);
+  if (hx) setVal('prop-fill', hx);
+});
+$('prop-fill-none').addEventListener('click', () => {
+  applyStyle('fill', 'none');
+  setVal('prop-fill-hex', 'none');
+  pushHistory();
+});
+
+$('prop-borderColor').addEventListener('input', (e) => applyStyle('borderColor', e.target.value));
+$('prop-shadow').addEventListener('change', (e) => applyStyle('shadow', e.target.value));
+$('prop-opacity').addEventListener('input', (e) => {
+  const v = parseFloat(e.target.value) / 100;
+  $('opacityVal').textContent = e.target.value + '%';
+  applyStyle('opacity', v);
+});
+
+$('prop-fontFamily').addEventListener('change', (e) => applyStyle('fontFamily', e.target.value));
+$('prop-fontWeight').addEventListener('change', (e) => applyStyle('fontWeight', e.target.value));
+$('prop-color').addEventListener('input', (e) => {
+  applyStyle('color', e.target.value);
+  setVal('prop-color-hex', e.target.value);
+});
+$('prop-color-hex').addEventListener('input', (e) => {
+  const v = e.target.value.trim();
+  if (!v) return;
+  applyStyle('color', v);
+  const hx = hexOrNull(v);
+  if (hx) setVal('prop-color', hx);
+});
+
+document.querySelectorAll('[data-align]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    applyStyle('textAlign', btn.dataset.align);
+    document.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+/* Layer section */
+$('prop-name').addEventListener('input', (e) => {
+  const sel = getSelected();
+  if (!sel.length) return;
+  sel[0].name = e.target.value || 'Layer';
+  renderLayers();
+  saveSoon();
+  scheduleHistory();
+});
+
+$('btnLayerHide').addEventListener('click', () => {
+  const sel = getSelected();
+  if (!sel.length) return;
+  const hide = !sel.every(e => e.hidden);
+  sel.forEach(e => { e.hidden = hide; syncElement(e); });
+  renderLayers(); updateSelectionBox(); pushHistory(); saveSoon();
+});
+
+$('btnLayerLock').addEventListener('click', () => {
+  const sel = getSelected();
+  if (!sel.length) return;
+  const lock = !sel.every(e => e.locked);
+  sel.forEach(e => { e.locked = lock; });
+  renderLayers(); pushHistory(); saveSoon();
+  toast(lock ? 'Locked' : 'Unlocked', 'info');
+});
+
+$('btnLayerDelete').addEventListener('click', deleteSelected);
+
+$('btnLayerUp').addEventListener('click', () => moveZ(1));
+$('btnLayerDown').addEventListener('click', () => moveZ(-1));
+
+/** Ubah z-order elemen terpilih dalam array */
+function moveZ(dir) {
+  const sel = getSelected();
+  if (!sel.length) return;
+  if (dir > 0) {
+    for (let i = state.elements.length - 2; i >= 0; i--) {
+      const a = state.elements[i], b = state.elements[i + 1];
+      if (state.selection.includes(a.id) && !state.selection.includes(b.id)) {
+        state.elements[i] = b; state.elements[i + 1] = a;
+      }
+    }
+  } else {
+    for (let i = 1; i < state.elements.length; i++) {
+      const a = state.elements[i], b = state.elements[i - 1];
+      if (state.selection.includes(a.id) && !state.selection.includes(b.id)) {
+        state.elements[i] = b; state.elements[i - 1] = a;
+      }
+    }
+  }
+  renderCanvas();
+  renderLayers();
+  pushHistory();
+  saveSoon();
+}
+
+/* ============================================================================
+   11. LAYER PANEL
+   ============================================================================ */
+function renderLayers() {
+  const tree = $('layerTree');
+  tree.innerHTML = '';
+
+  if (!state.elements.length) {
+    tree.innerHTML = '<div class="empty">No layers yet.<br />Drag a component onto the canvas.</div>';
+    return;
+  }
+
+  const build = (parentId, depth) => {
+    // urutan terbalik: elemen paling atas tampil paling atas
+    state.elements
+      .filter(e => (e.parentId || null) === parentId)
+      .slice()
+      .reverse()
+      .forEach(el => {
+        const def = COMPONENTS[el.type] || { icon:'?' };
+        const row = document.createElement('div');
+        row.className = 'layer-row' +
+          (state.selection.includes(el.id) ? ' sel' : '') +
+          (el.hidden ? ' hidden-el' : '') +
+          (el.locked ? ' locked-el' : '');
+        row.style.paddingLeft = (8 + depth * 13) + 'px';
+        row.dataset.id = el.id;
+
+        row.innerHTML =
+          `<span class="ltype">${def.icon}</span>` +
+          `<span class="lname">${esc(el.name)}</span>` +
+          `<button class="lbtn" data-act="hide" title="Toggle visibility">${el.hidden ? '◌' : '◉'}</button>` +
+          `<button class="lbtn" data-act="lock" title="Toggle lock">${el.locked ? '🔒' : '🔓'}</button>` +
+          `<button class="lbtn" data-act="del" title="Delete">✕</button>`;
+
+        row.addEventListener('click', (e) => {
+          const act = e.target.closest('.lbtn');
+          if (act) {
+            e.stopPropagation();
+            const a = act.dataset.act;
+            if (a === 'hide') { el.hidden = !el.hidden; syncElement(el); renderLayers(); saveSoon(); scheduleHistory(); }
+            if (a === 'lock') { el.locked = !el.locked; renderLayers(); saveSoon(); }
+            if (a === 'del')  { state.selection = [el.id]; deleteSelected(); }
+            return;
+          }
+          if (e.shiftKey) {
+            if (state.selection.includes(el.id)) state.selection = state.selection.filter(s => s !== el.id);
+            else state.selection.push(el.id);
+          } else {
+            state.selection = [el.id];
+          }
+          renderLayers();
+          updateInspector();
+          updateSelectionBox();
+        });
+
+        // double click = rename
+        row.addEventListener('dblclick', (e) => {
+          if (e.target.closest('.lbtn')) return;
+          const nameSpan = row.querySelector('.lname');
+          const input = document.createElement('input');
+          input.value = el.name;
+          nameSpan.innerHTML = '';
+          nameSpan.appendChild(input);
+          input.focus();
+          input.select();
+          const commit = () => {
+            el.name = input.value.trim() || 'Layer';
+            renderLayers();
+            updateInspector();
+            pushHistory();
+            saveSoon();
+          };
+          input.addEventListener('blur', commit);
+          input.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+            if (ev.key === 'Escape') { renderLayers(); }
+            ev.stopPropagation();
+          });
+        });
+
+        tree.appendChild(row);
+        build(el.id, depth + 1);
+      });
+  };
+
+  build(null, 0);
+}
+
+/* Tab switching */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const t = btn.dataset.tab;
+    $('tab-design').style.display = t === 'design' ? 'block' : 'none';
+    $('tab-layers').style.display = t === 'layers' ? 'block' : 'none';
+    if (t === 'layers') renderLayers();
+  });
+});
+
+/* ============================================================================
+   12. HISTORY (undo / redo)
+   ============================================================================ */
+let history = [];
+let hIndex = -1;
+let histTimer = null;
+
+function serializeState() {
+  return JSON.stringify({
+    docName: state.docName,
+    device: state.device,
+    customW: state.customW,
+    customH: state.customH,
+    chrome: state.chrome,
+    grid: state.grid,
+    zoom: state.zoom,
+    tool: state.tool,
+    elements: state.elements,
+    selection: state.selection
+  });
+}
+
+/** Simpan snapshot state saat ini ke history */
+function pushHistory() {
+  clearTimeout(histTimer);
+  const snap = serializeState();
+  if (hIndex >= 0 && history[hIndex] === snap) return;
+  history = history.slice(0, hIndex + 1);
+  history.push(snap);
+  if (history.length > HISTORY_LIMIT + 1) history.shift();
+  hIndex = history.length - 1;
+  updateHistoryButtons();
+}
+
+/** Debounced version untuk input kontinu */
+function scheduleHistory() {
+  clearTimeout(histTimer);
+  histTimer = setTimeout(() => { pushHistory(); }, 450);
+}
+
+function updateHistoryButtons() {
+  $('btnUndo').disabled = hIndex <= 0;
+  $('btnRedo').disabled = hIndex >= history.length - 1;
+}
+
+function applySnapshot(snap) {
+  const data = JSON.parse(snap);
+  state.docName  = data.docName;
+  state.device   = data.device;
+  state.customW  = data.customW;
+  state.customH  = data.customH;
+  state.chrome   = data.chrome;
+  state.grid     = data.grid;
+  state.zoom     = data.zoom;
+  state.tool     = data.tool;
+  state.elements = data.elements;
+  state.selection = data.selection;
+
+  $('docName').value = state.docName;
+  $('deviceSelect').value = state.device;
+  $('customW').value = state.customW;
+  $('customH').value = state.customH;
+  $('customSizeWrap').style.display = state.device === 'custom' ? 'flex' : 'none';
+  $('chromeToggle').checked = state.chrome;
+
+  applyDevice();
+  renderAll();
+  updateHistoryButtons();
+}
+
+function undo() {
+  if (hIndex <= 0) return;
+  hIndex--;
+  applySnapshot(history[hIndex]);
+  toast('Undo', 'info');
+}
+
+function redo() {
+  if (hIndex >= history.length - 1) return;
+  hIndex++;
+  applySnapshot(history[hIndex]);
+  toast('Redo', 'info');
+}
+
+/* ============================================================================
+   13. SAVE / LOAD (LocalStorage)
+   ============================================================================ */
+let saveTimer = null;
+
+function saveSoon() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToLocalStorage, SAVE_DEBOUNCE);
+}
+
+function saveToLocalStorage(silent) {
+  try {
+    localStorage.setItem(STORAGE_KEY, serializeState());
+    if (!silent) toast('Saved to LocalStorage', 'ok');
+    return true;
+  } catch (err) {
+    if (!silent) toast('Save failed: ' + err.message, 'err');
+    return false;
+  }
+}
+
+function loadFromLocalStorage(silent) {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.elements)) return false;
+
+    state.docName  = data.docName  || 'Untitled Design';
+    state.device   = data.device   || 'iphone';
+    state.customW  = data.customW  || 1000;
+    state.customH  = data.customH  || 700;
+    state.chrome   = data.chrome !== false;
+    state.grid     = data.grid !== false;
+    state.zoom     = data.zoom || 1;
+    state.tool     = 'select';
+    state.elements = data.elements;
+    state.selection = data.selection || [];
+
+    $('docName').value = state.docName;
+    $('deviceSelect').value = state.device;
+    $('customW').value = state.customW;
+    $('customH').value = state.customH;
+    $('customSizeWrap').style.display = state.device === 'custom' ? 'flex' : 'none';
+    $('chromeToggle').checked = state.chrome;
+
+    applyDevice();
+    renderAll();
+    if (!silent) toast('Loaded from LocalStorage', 'ok');
+    return true;
+  } catch (err) {
+    if (!silent) toast('Load failed: ' + err.message, 'err');
+    return false;
+  }
+}
+
+/* ============================================================================
+   14. EXPORT
+   ============================================================================ */
+const modalBackdrop = $('modalBackdrop');
+
+function openModal(title, bodyHTML, footHTML) {
+  $('modalTitle').textContent = title;
+  $('modalBody').innerHTML = bodyHTML;
+  $('modalFoot').innerHTML = footHTML || '';
+  modalBackdrop.classList.add('open');
+}
+function closeModal() { modalBackdrop.classList.remove('open'); }
+
+$('modalClose').addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', (e) => { if (e.target === modalBackdrop) closeModal(); });
+
+/** Bangun HTML statis siap pakai dari state */
+function buildExportHTML() {
+  const dev = currentDevice();
+
+  const clone = frameContent.cloneNode(true);
+  // bersihkan class & atribut editor
+  clone.querySelectorAll('.wf-el').forEach(n => {
+    n.className = '';
+    n.removeAttribute('data-id');
+    if (n.style.display === 'none') n.remove(); // elemen tersembunyi tidak diexport
+  });
+  clone.querySelectorAll('[data-id]').forEach(n => n.removeAttribute('data-id'));
+
+  const radius = state.chrome ? 26 : 0;
+  const screenStyle = state.chrome
+    ? `border-radius:${radius}px;box-shadow:0 24px 70px rgba(15,23,42,.28);`
+    : '';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${esc(state.docName)}</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:#eef2f7;display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:32px;
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:#111827;
+  }
+  .screen{
+    position:relative;width:${dev.w}px;height:${dev.h}px;background:#ffffff;
+    overflow:hidden;flex:0 0 auto;${screenStyle}
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+${clone.innerHTML}
+</div>
+</body>
+</html>`;
+}
+
+function download(filename, content, mime) {
+  const blob = new Blob([content], { type: mime || 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+/* ---------- EXPORT HTML ---------- */
+function exportHTML() {
+  const html = buildExportHTML();
+  openModal(
+    'Export — HTML + CSS',
+    `<p class="modal-note">Salin kode di bawah atau unduh sebagai file <code>.html</code>.
+     Semua styling sudah inline &amp; class editor sudah dibersihkan.</p>
+     <textarea id="exportText" spellcheck="false" readonly></textarea>`,
+    `<button class="btn" id="mCopy">Copy</button>
+     <button class="btn primary" id="mDownload">Download .html</button>`
+  );
+  $('exportText').value = html;
+  $('mCopy').addEventListener('click', () => {
+    const ta = $('exportText');
+    ta.select();
+    navigator.clipboard.writeText(html).then(
+      () => toast('Copied!', 'ok'),
+      () => { document.execCommand('copy'); toast('Copied!', 'ok'); }
+    );
+  });
+  $('mDownload').addEventListener('click', () => {
+    const name = (state.docName || 'design').replace(/[^\w\-]+/g, '_').toLowerCase();
+    download(name + '.html', html, 'text/html;charset=utf-8');
+    toast('Exported HTML', 'ok');
+  });
+}
+
+/* ---------- EXPORT PNG (SVG foreignObject → canvas) ---------- */
+function exportPNG() {
+  const dev = currentDevice();
+  const d = Math.min(2, window.devicePixelRatio || 1);
+  const scale = Math.max(1, Math.min(2, d));
+
+  // clone konten + inline style dasar
+  const clone = frameContent.cloneNode(true);
+  clone.querySelectorAll('.wf-el').forEach(n => {
+    n.removeAttribute('data-id');
+    if (n.style.display === 'none') n.remove();
+  });
+
+  const inner = clone.innerHTML
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  const svg =
+`<svg xmlns="http://www.w3.org/2000/svg" width="${dev.w}" height="${dev.h}" viewBox="0 0 ${dev.w} ${dev.h}">
+  <foreignObject width="100%" height="100%">
+    <div xmlns="http://www.w3.org/1999/xhtml"
+         style="width:${dev.w}px;height:${dev.h}px;background:#ffffff;position:relative;overflow:hidden;
+                font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;">
+      ${inner}
+    </div>
+  </foreignObject>
+</svg>`;
+
+  const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+
+  img.onload = () => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(dev.w * scale);
+      canvas.height = Math.round(dev.h * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0, dev.w, dev.h);
+
+      canvas.toBlob((blob) => {
+        if (!blob) { toast('PNG export failed', 'err'); return; }
+        const a = document.createElement('a');
+        const name = (state.docName || 'design').replace(/[^\w\-]+/g, '_').toLowerCase();
+        a.href = URL.createObjectURL(blob);
+        a.download = name + '.png';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        toast('Exported PNG', 'ok');
+      }, 'image/png');
+    } catch (err) {
+      toast('PNG export failed: ' + err.message, 'err');
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
+    toast('PNG export tidak didukung browser ini — gunakan Export HTML.', 'err');
+  };
+
+  img.src = url;
+}
+
+/* ---------- EXPORT JSON ---------- */
+function exportJSON() {
+  const name = (state.docName || 'design').replace(/[^\w\-]+/g, '_').toLowerCase();
+  download(name + '.json', serializeState(), 'application/json;charset=utf-8');
+  toast('Exported JSON', 'ok');
+}
+
+/* ---------- IMPORT JSON ---------- */
+function importJSON() {
+  $('fileInput').value = '';
+  $('fileInput').click();
+}
+
+$('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data || !Array.isArray(data.elements)) throw new Error('Format JSON tidak valid');
+
+      if (state.elements.length && !confirm('Import akan mengganti dokumen saat ini. Lanjutkan?')) return;
+
+      state.docName   = data.docName || 'Imported Design';
+      state.device    = data.device  || 'iphone';
+      state.customW   = data.customW || 1000;
+      state.customH   = data.customH || 700;
+      state.chrome    = data.chrome !== false;
+      state.grid      = data.grid !== false;
+      state.zoom      = data.zoom || 1;
+      state.elements  = data.elements;
+      state.selection = [];
+
+      $('docName').value = state.docName;
+      $('deviceSelect').value = state.device;
+      $('customW').value = state.customW;
+      $('customH').value = state.customH;
+      $('customSizeWrap').style.display = state.device === 'custom' ? 'flex' : 'none';
+      $('chromeToggle').checked = state.chrome;
+
+      applyDevice();
+      renderAll();
+      pushHistory();
+      saveSoon();
+      toast('JSON imported', 'ok');
+    } catch (err) {
+      toast('Import gagal: ' + err.message, 'err');
+    }
+  };
+  reader.readAsText(file);
+});
+
+/* ---------- PRINT / PDF ---------- */
+function exportPrint() {
+  const html = buildExportHTML();
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(iframe);
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(html);
+  doc.close();
+  setTimeout(() => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (err) {
+      toast('Print gagal: ' + err.message, 'err');
+    }
+    setTimeout(() => iframe.remove(), 2000);
+  }, 400);
+  toast('Membuka dialog print…', 'info');
+}
+
+/* ============================================================================
+   15. TOP BAR ACTIONS
+   ============================================================================ */
+$('docName').addEventListener('input', (e) => {
+  state.docName = e.target.value || 'Untitled Design';
+  saveSoon();
+  scheduleHistory();
+});
+
+$('btnNew').addEventListener('click', () => {
+  if (state.elements.length && !confirm('Buat dokumen baru? Perubahan yang belum disimpan akan hilang.')) return;
+  state.elements = [];
+  state.selection = [];
+  state.docName = 'Untitled Design';
+  $('docName').value = state.docName;
+  renderAll();
+  pushHistory();
+  saveSoon();
+  toast('New document', 'info');
+});
+
+$('btnDup').addEventListener('click', duplicateSelected);
+
+$('btnSave').addEventListener('click', () => saveToLocalStorage(false));
+$('btnLoad').addEventListener('click', () => {
+  if (state.elements.length && !confirm('Muat dari LocalStorage? Dokumen saat ini akan ditimpa.')) return;
+  if (!loadFromLocalStorage(false)) toast('Tidak ada data tersimpan', 'err');
+  else pushHistory();
+});
+
+$('btnUndo').addEventListener('click', undo);
+$('btnRedo').addEventListener('click', redo);
+
+$('btnGrid').addEventListener('click', () => {
+  state.grid = !state.grid;
+  $('gridOverlay').style.display = state.grid ? 'block' : 'none';
+  $('btnGrid').classList.toggle('active', state.grid);
+  saveSoon();
+});
+
+$('btnZoomIn').addEventListener('click', () => setZoom(state.zoom + 0.1));
+$('btnZoomOut').addEventListener('click', () => setZoom(state.zoom - 0.1));
+$('btnZoomFit').addEventListener('click', () => setZoom(fitZoom()));
+
+/* device controls */
+$('deviceSelect').addEventListener('change', (e) => {
+  state.device = e.target.value;
+  $('customSizeWrap').style.display = state.device === 'custom' ? 'flex' : 'none';
+  applyDevice();
+  setZoom(fitZoom());
+  saveSoon();
+  scheduleHistory();
+});
+
+$('customW').addEventListener('input', (e) => {
+  state.customW = clamp(parseInt(e.target.value, 10) || 320, 80, 4000);
+  if (state.device === 'custom') { applyDevice(); setZoom(fitZoom()); }
+  saveSoon();
+});
+$('customH').addEventListener('input', (e) => {
+  state.customH = clamp(parseInt(e.target.value, 10) || 320, 80, 4000);
+  if (state.device === 'custom') { applyDevice(); setZoom(fitZoom()); }
+  saveSoon();
+});
+
+$('chromeToggle').addEventListener('change', (e) => {
+  state.chrome = e.target.checked;
+  applyDevice();
+  saveSoon();
+});
+
+/* export menu */
+$('btnExport').addEventListener('click', (e) => {
+  e.stopPropagation();
+  $('exportMenu').classList.toggle('open');
+});
+document.addEventListener('click', () => $('exportMenu').classList.remove('open'));
+
+$('exportMenu').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-export]');
+  if (!b) return;
+  $('exportMenu').classList.remove('open');
+  const act = b.dataset.export;
+  if (act === 'html')   exportHTML();
+  if (act === 'png')    exportPNG();
+  if (act === 'json')   exportJSON();
+  if (act === 'import') importJSON();
+  if (act === 'print')  exportPrint();
+});
+
+/* ============================================================================
+   16. KEYBOARD SHORTCUTS
+   ============================================================================ */
+window.addEventListener('keydown', (e) => {
+  const typing = isTyping(e.target);
+  const ctrl = e.ctrlKey || e.metaKey;
+
+  /* --- Ctrl combos --- */
+  if (ctrl) {
+    const k = e.key.toLowerCase();
+    if (k === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) redo(); else undo();
+      return;
+    }
+    if (k === 'y') { e.preventDefault(); redo(); return; }
+    if (k === 'd') { e.preventDefault(); duplicateSelected(); return; }
+    if (k === 'a') {
+      if (typing) return;
+      e.preventDefault();
+      state.selection = state.elements.filter(el => !el.hidden).map(el => el.id);
+      renderLayers(); updateInspector(); updateSelectionBox();
+      return;
+    }
+    if (k === 's') { e.preventDefault(); saveToLocalStorage(false); return; }
+    if (k === 'g') { e.preventDefault(); toast('Group: gunakan multi-select + layer order', 'info'); return; }
+    return;
+  }
+
+  if (typing) return;
+
+  /* --- Single keys --- */
+  switch (e.key) {
+    case 'Delete':
+    case 'Backspace':
+      e.preventDefault();
+      deleteSelected();
+      return;
+
+    case 'Escape':
+      state.selection = [];
+      renderLayers(); updateInspector(); updateSelectionBox();
+      return;
+
+    case 'v': case 'V':
+      state.tool = 'select';
+      canvasScroll.classList.remove('tool-hand');
+      updateStatus();
+      return;
+
+    case 'h': case 'H':
+      state.tool = 'hand';
+      canvasScroll.classList.add('tool-hand');
+      updateStatus();
+      return;
+
+    case 'g': case 'G':
+      state.grid = !state.grid;
+      $('gridOverlay').style.display = state.grid ? 'block' : 'none';
+      $('btnGrid').classList.toggle('active', state.grid);
+      return;
+
+    case 'ArrowLeft': case 'ArrowRight': case 'ArrowUp': case 'ArrowDown': {
+      const sel = getSelected().filter(el => !el.locked);
+      if (!sel.length) return;
+      e.preventDefault();
+      const step = e.shiftKey ? 10 : 1;
+      const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
+      const dy = e.key === 'ArrowUp'   ? -step : e.key === 'ArrowDown'  ? step : 0;
+      sel.forEach(el => {
+        el.style.x += dx;
+        el.style.y += dy;
+        syncElement(el);
+      });
+      updateSelectionBox();
+      updateInspector();
+      scheduleHistory();
+      saveSoon();
+      return;
+    }
+  }
+});
+
+/* ============================================================================
+   17. INIT
+   ============================================================================ */
+function init() {
+  buildLibrary();
+
+  // coba restore dari localStorage
+  const restored = loadFromLocalStorage(true);
+
+  if (!restored) {
+    // dokumen kosong: siapkan device default
+    applyDevice();
+    renderAll();
+    setZoom(fitZoom());
+  } else {
+    setZoom(state.zoom);
+  }
+
+  renderAll();
+  pushHistory();
+  updateHistoryButtons();
+
+  // Set zoom fit saat pertama kali
+  setTimeout(() => { setZoom(fitZoom()); }, 60);
+
+  toast('Wireframe Studio siap ✨', 'info');
+}
+
+init();
+</script>
+</body>
+</html>
