@@ -13,8 +13,7 @@ export default defineConfig({
             './src/core/state.js',
             './src/core/bus.js',
             './src/components/registry.js',
-            './src/components/templates.js',
-            './src/components/contentFields.js'
+            './src/components/templates.js'
           ],
           rendering: [
             './src/rendering/nodeStyle.js',
@@ -25,14 +24,12 @@ export default defineConfig({
           ui: [
             './src/ui/topbar.js',
             './src/ui/inspector.js',
-            './src/ui/statusbar.js',
             './src/ui/libraryPanel.js',
             './src/ui/modal.js',
             './src/ui/toast.js'
           ],
           interaction: [
             './src/interaction/canvasInteraction.js',
-            './src/interaction/libraryDrag.js',
             './src/interaction/keyboard.js'
           ],
           services: [
